@@ -21,7 +21,7 @@ dependencies {
 
     implementation(kotlin("stdlib-jdk8"))
     implementation("com.charleskorn.kaml:kaml:0.15.0")
-    implementation("com.github.ajalt:clikt:2.3.0")
+    implementation("com.github.ajalt:clikt:2.5.0")
     implementation("com.google.cloud:google-cloud-storage:1.103.0")
     implementation("com.google.dagger:dagger:$dagger_version")
     implementation("com.google.guava:guava:28.2-jre")

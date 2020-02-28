@@ -177,16 +177,16 @@ class PublishVersionCommand :
     CliktCommand(name = "publish_version", help = "publish an already-built version of Spinnaker") {
 
     private val bomFile by option("--bom", help = "the path to the BOM file").path(
-        folderOkay = false,
-        readable = true
+        canBeDir = false,
+        mustBeReadable = true
     ).required()
     private val additionalVersions by option(
         "--additional-version",
         help = "an additional version to publish (beyond the one listed in the BOM; can be set more than once)"
     ).multiple()
     private val sourceRoot by option("--source-root", help = "the directory containing the git repositories").path(
-        fileOkay = false,
-        readable = true
+        canBeDir = false,
+        mustBeReadable = true
     ).required()
 
     val component by requireObject<MainComponent>()

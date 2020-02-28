@@ -47,8 +47,8 @@ class CopyContainersCommand :
     ) {
 
     private val bomFile by option("--bom", help = "the path to the BOM file").path(
-        folderOkay = false,
-        readable = true
+        canBeDir = false,
+        mustBeReadable = true
     ).required()
     private val destinationProject by option(
         "--destination-project",

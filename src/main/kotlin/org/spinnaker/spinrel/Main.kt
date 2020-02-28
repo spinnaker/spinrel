@@ -24,7 +24,7 @@ class Spinrel : CliktCommand() {
     )
 
     override fun run() {
-        context.obj = DaggerMainComponent.factory().create(gcrProject, gcsBucket)
+        currentContext.obj = DaggerMainComponent.factory().create(gcrProject, gcsBucket)
     }
 }
 
