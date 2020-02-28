@@ -6,7 +6,7 @@ plugins {
     kotlin("plugin.serialization") version kotlinVersion
     kotlin("kapt") version kotlinVersion
     application
-    id("org.jlleitschuh.gradle.ktlint") version "9.1.1"
+    id("org.jlleitschuh.gradle.ktlint") version "9.2.1"
 }
 
 repositories {
@@ -14,7 +14,7 @@ repositories {
     jcenter()
 }
 dependencies {
-    val dagger_version = "2.25.4"
+    val dagger_version = "2.26"
 
     kapt("com.google.dagger:dagger-compiler:$dagger_version")
     kaptTest("com.google.dagger:dagger-compiler:$dagger_version")
@@ -26,7 +26,7 @@ dependencies {
     implementation("com.google.dagger:dagger:$dagger_version")
     implementation("com.google.guava:guava:28.2-jre")
     implementation("io.github.microutils:kotlin-logging:1.7.8")
-    implementation("org.apache.commons:commons-compress:1.19")
+    implementation("org.apache.commons:commons-compress:1.20")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0")
 
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
@@ -34,9 +34,9 @@ dependencies {
     testImplementation("com.google.jimfs:jimfs:1.1")
     testImplementation("com.google.cloud:google-cloud-nio:0.120.0-alpha")
     testImplementation("io.mockk:mockk:1.9.3")
-    testImplementation("io.strikt:strikt-core:0.23.4")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
+    testImplementation("io.strikt:strikt-core:0.24.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.0")
 }
 
 application {
