@@ -7,14 +7,12 @@ application {
 }
 
 dependencies {
-    val dagger_version = "2.26"
-
-    kapt("com.google.dagger:dagger-compiler:$dagger_version")
+    kapt("com.google.dagger:dagger-compiler")
 
     implementation(project(":core"))
     implementation(project(":cli-shared"))
-    implementation("com.github.ajalt:clikt:2.5.0")
-    implementation("com.google.dagger:dagger:$dagger_version")
+    implementation("com.github.ajalt:clikt")
+    implementation("com.google.dagger:dagger")
 
-    runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
+    runtimeOnly("org.slf4j:slf4j-simple")
 }
