@@ -33,11 +33,11 @@ class ContainerCopier @Inject constructor(
             .mapValues { (_, serviceInfo) -> serviceInfo.version!! }
             .forEach { (service, version) ->
                 tagGenerator.generateTagsForVersion(version).forEach { tag ->
-                    val source = "gcr.io/$sourceProject/$service:$tag"
-                    val dest = "gcr.io/$destProject/$service:$tag"
-                    docker.runCommand("pull", source)
-                    docker.runCommand("tag", source, dest)
-                    docker.runCommand("push", dest)
+                    docker.copyContainer(
+                        imageName = service,
+                        sourceRegistry = sourceProject.toString(), sourceTag = tag,
+                        destRegistry = destProject.toString(), destTag = tag
+                    )
                 }
             }
     }
@@ -65,7 +65,7 @@ class CopyContainersCommand :
     ).required()
 
     private val sourceProject by option(
-        "--source-project"
+        "--source-project",
         help = "the GCR project containing the containers"
     ).gcrProject().default(GcrProject("spinnaker-marketplace"))
     private val destinationProject by option(

@@ -18,16 +18,12 @@ interface ContainerRegistry {
 class GoogleContainerRegistry @Inject constructor(val gcrProject: GcrProject, val docker: Docker) :
     ContainerRegistry {
 
-    // In theory this can be done instead with two HTTP calls (avoiding the pull), but it would require mucking around
-    // with authentication headers. Maybe worth it?
-    // https://dille.name/blog/2018/09/20/how-to-tag-docker-images-without-pulling-them/
-    // https://cloud.google.com/run/docs/authenticating/developers
     override fun addTag(service: String, existingTag: String, newTag: String) {
-        val sourceUrl = "gcr.io/$gcrProject/$service:$existingTag"
-        val destUrl = "gcr.io/$gcrProject/$service:$newTag"
-        docker.runCommand("pull", sourceUrl)
-        docker.runCommand("tag", sourceUrl, destUrl)
-        docker.runCommand("push", destUrl)
+        docker.copyContainer(
+            imageName = service,
+            sourceRegistry = gcrProject.toString(), sourceTag = existingTag,
+            destRegistry = gcrProject.toString(), destTag = newTag
+        )
     }
 }
 
@@ -35,7 +31,25 @@ class Docker @Inject constructor() {
 
     private val logger = KotlinLogging.logger {}
 
-    fun runCommand(vararg args: String) {
+    // In theory this can be done instead with two HTTP calls (avoiding the pull), but it would require mucking around
+    // with authentication headers. Maybe worth it?
+    // https://dille.name/blog/2018/09/20/how-to-tag-docker-images-without-pulling-them/
+    // https://cloud.google.com/run/docs/authenticating/developers
+    fun copyContainer(
+        imageName: String,
+        sourceRegistry: String,
+        sourceTag: String,
+        destRegistry: String,
+        destTag: String
+    ) {
+        val sourceUrl = "gcr.io/$sourceRegistry/$imageName:$sourceTag"
+        val destUrl = "gcr.io/$destRegistry/$imageName:$destTag"
+        runCommand("pull", sourceUrl)
+        runCommand("tag", sourceUrl, destUrl)
+        runCommand("push", destUrl)
+    }
+
+    private fun runCommand(vararg args: String) {
         val command = listOf("docker", *args)
         logger.info { "Running command ${command.joinToString(separator = " ")}" }
         val process = ProcessBuilder().command(command)
