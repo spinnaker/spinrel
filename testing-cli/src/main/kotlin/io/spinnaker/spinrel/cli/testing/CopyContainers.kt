@@ -2,9 +2,11 @@ package io.spinnaker.spinrel.cli.testing
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.requireObject
+import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.path
+import dagger.BindsInstance
 import dagger.Subcomponent
 import io.spinnaker.spinrel.Bom
 import io.spinnaker.spinrel.ContainerTagGenerator
@@ -44,18 +46,28 @@ class ContainerCopier @Inject constructor(
 @Subcomponent
 interface ContainerCopierComponent {
     fun containerCopier(): ContainerCopier
+
+    @Subcomponent.Factory
+    interface Factory {
+        fun create(@BindsInstance gcrProject: GcrProject): ContainerCopierComponent
+    }
 }
 
 class CopyContainersCommand :
     CliktCommand(
         name = "copy_containers",
-        help = "copy containers for a release from the --gcr-project to --destination-project"
+        help = "copy containers for a release from the --source-project to --destination-project"
     ) {
 
     private val bomFile by option("--bom", help = "the path to the BOM file").path(
         canBeDir = false,
         mustBeReadable = true
     ).required()
+
+    private val sourceProject by option(
+        "--source-project"
+        help = "the GCR project containing the containers"
+    ).gcrProject().default(GcrProject("spinnaker-marketplace"))
     private val destinationProject by option(
         "--destination-project",
         help = "the GCR project where containers will be copied"
@@ -64,5 +76,5 @@ class CopyContainersCommand :
     val component by requireObject<MainComponent>()
 
     override fun run() =
-        component.containerCopierComponent().containerCopier().copyContainers(bomFile, destinationProject)
+        component.containerCopierComponentFactory().create(sourceProject).containerCopier().copyContainers(bomFile, destinationProject)
 }
