@@ -21,8 +21,8 @@ class GoogleContainerRegistry @Inject constructor(val gcrProject: GcrProject, va
     override fun addTag(service: String, existingTag: String, newTag: String) {
         docker.copyContainer(
             imageName = service,
-            sourceRegistry = gcrProject.toString(), sourceTag = existingTag,
-            destRegistry = gcrProject.toString(), destTag = newTag
+            sourceRegistry = gcrProject, sourceTag = existingTag,
+            destRegistry = gcrProject, destTag = newTag
         )
     }
 }
@@ -37,9 +37,9 @@ class Docker @Inject constructor() {
     // https://cloud.google.com/run/docs/authenticating/developers
     fun copyContainer(
         imageName: String,
-        sourceRegistry: String,
+        sourceRegistry: GcrProject,
         sourceTag: String,
-        destRegistry: String,
+        destRegistry: GcrProject,
         destTag: String
     ) {
         val sourceUrl = "gcr.io/$sourceRegistry/$imageName:$sourceTag"

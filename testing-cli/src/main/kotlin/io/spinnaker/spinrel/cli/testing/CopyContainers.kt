@@ -35,8 +35,8 @@ class ContainerCopier @Inject constructor(
                 tagGenerator.generateTagsForVersion(version).forEach { tag ->
                     docker.copyContainer(
                         imageName = service,
-                        sourceRegistry = sourceProject.toString(), sourceTag = tag,
-                        destRegistry = destProject.toString(), destTag = tag
+                        sourceRegistry = sourceProject, sourceTag = tag,
+                        destRegistry = destProject, destTag = tag
                     )
                 }
             }
