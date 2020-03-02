@@ -2,6 +2,7 @@ package io.spinnaker.spinrel.cli.jenkins
 
 import com.google.cloud.storage.Storage
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
+import com.google.common.io.ByteStreams
 import com.google.common.io.CharStreams
 import com.google.common.jimfs.Jimfs
 import io.mockk.impl.annotations.MockK
@@ -479,7 +480,14 @@ class VersionPublisherTest {
     private fun writeRepositoryFile(path: String, content: String): Path =
         repositoriesDir.resolve(path)
             .also { Files.createDirectories(it.parent) }
-            .also { Files.writeString(it, content) }
+            .also { // TODO(plumpy): in Java 11, use Files.writeString
+                ByteStreams.copy(
+                    ByteArrayInputStream(
+                        content.toByteArray(Charsets.UTF_8)
+                    ),
+                    Files.newOutputStream(it)
+                )
+            }
 
     private fun createRepositoryDirectory(path: String): Path =
         repositoriesDir.resolve(path).also { Files.createDirectories(it) }
