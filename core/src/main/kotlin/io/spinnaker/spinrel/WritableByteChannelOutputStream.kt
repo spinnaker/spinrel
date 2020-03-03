@@ -1,4 +1,4 @@
-package io.spinnaker.spinrel.cli.jenkins
+package io.spinnaker.spinrel
 
 import java.io.IOException
 import java.io.OutputStream

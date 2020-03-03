@@ -17,7 +17,6 @@ dependencies {
     implementation("com.google.dagger:dagger")
     implementation("com.google.guava:guava")
     implementation("io.github.microutils:kotlin-logging")
-    implementation("org.apache.commons:commons-compress")
 
     runtimeOnly("org.slf4j:slf4j-simple")
 

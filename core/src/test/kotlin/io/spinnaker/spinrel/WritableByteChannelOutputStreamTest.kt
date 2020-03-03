@@ -1,4 +1,4 @@
-package io.spinnaker.spinrel.cli.jenkins
+package io.spinnaker.spinrel
 
 import com.google.common.collect.Iterables
 import java.nio.ByteBuffer
