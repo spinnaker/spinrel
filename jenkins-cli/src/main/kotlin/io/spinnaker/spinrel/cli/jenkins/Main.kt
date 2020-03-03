@@ -8,11 +8,14 @@ import dagger.BindsInstance
 import dagger.Component
 import io.spinnaker.spinrel.GcrProject
 import io.spinnaker.spinrel.GcsBucket
+import io.spinnaker.spinrel.GoogleApiHttpClientModule
+import io.spinnaker.spinrel.GoogleAuthModule
 import io.spinnaker.spinrel.GoogleCloudStorageModule
 import io.spinnaker.spinrel.GoogleContainerRegistryModule
 import io.spinnaker.spinrel.cli.ProductionConfigModule
 import io.spinnaker.spinrel.cli.gcrProject
 import io.spinnaker.spinrel.cli.gcsBucket
+import javax.inject.Singleton
 
 fun main(args: Array<String>) {
     Spinrel()
@@ -33,8 +36,9 @@ class Spinrel : CliktCommand() {
     }
 }
 
+@Singleton
 @Component(
-    modules = [GoogleCloudStorageModule::class, GoogleContainerRegistryModule::class, ProductionConfigModule::class]
+    modules = [GoogleApiHttpClientModule::class, GoogleCloudStorageModule::class, GoogleContainerRegistryModule::class, ProductionConfigModule::class]
 )
 interface MainComponent {
 

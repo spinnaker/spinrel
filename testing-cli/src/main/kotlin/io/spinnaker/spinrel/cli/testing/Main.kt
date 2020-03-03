@@ -20,5 +20,5 @@ class Spinrel : CliktCommand() {
 @Component(modules = [ProductionConfigModule::class])
 interface MainComponent {
 
-    fun containerCopierComponentFactory(): ContainerCopierComponent.Factory
+    fun containerCopierComponent(): ContainerCopierComponent
 }

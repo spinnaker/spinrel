@@ -6,11 +6,9 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.path
-import dagger.BindsInstance
 import dagger.Subcomponent
 import io.spinnaker.spinrel.Bom
 import io.spinnaker.spinrel.ContainerTagGenerator
-import io.spinnaker.spinrel.Docker
 import io.spinnaker.spinrel.GcrProject
 import io.spinnaker.spinrel.SpinnakerServiceRegistry
 import io.spinnaker.spinrel.cli.gcrProject
@@ -18,13 +16,12 @@ import java.nio.file.Path
 import javax.inject.Inject
 
 class ContainerCopier @Inject constructor(
-    private val sourceProject: GcrProject,
     private val docker: Docker,
     private val serviceRegistry: SpinnakerServiceRegistry,
     private val tagGenerator: ContainerTagGenerator
 ) {
 
-    fun copyContainers(bomFile: Path, destProject: GcrProject) {
+    fun copyContainers(bomFile: Path, sourceProject: GcrProject, destProject: GcrProject) {
         val bom = Bom.readFromFile(bomFile)
 
         bom.services
@@ -35,8 +32,8 @@ class ContainerCopier @Inject constructor(
                 tagGenerator.generateTagsForVersion(version).forEach { tag ->
                     docker.copyContainer(
                         imageName = service,
-                        sourceRegistry = sourceProject, sourceTag = tag,
-                        destRegistry = destProject, destTag = tag
+                        sourceProject = sourceProject, sourceTag = tag,
+                        destProject = destProject, destTag = tag
                     )
                 }
             }
@@ -46,11 +43,6 @@ class ContainerCopier @Inject constructor(
 @Subcomponent
 interface ContainerCopierComponent {
     fun containerCopier(): ContainerCopier
-
-    @Subcomponent.Factory
-    interface Factory {
-        fun create(@BindsInstance gcrProject: GcrProject): ContainerCopierComponent
-    }
 }
 
 class CopyContainersCommand :
@@ -76,5 +68,5 @@ class CopyContainersCommand :
     val component by requireObject<MainComponent>()
 
     override fun run() =
-        component.containerCopierComponentFactory().create(sourceProject).containerCopier().copyContainers(bomFile, destinationProject)
+        component.containerCopierComponent().containerCopier().copyContainers(bomFile, sourceProject, destinationProject)
 }

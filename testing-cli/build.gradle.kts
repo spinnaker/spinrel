@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":cli-shared"))
     implementation("com.github.ajalt:clikt")
     implementation("com.google.dagger:dagger")
+    implementation("io.github.microutils:kotlin-logging")
 
     runtimeOnly("org.slf4j:slf4j-simple")
 }
