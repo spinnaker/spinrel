@@ -9,23 +9,16 @@ import com.github.ajalt.clikt.parameters.types.path
 import dagger.BindsInstance
 import dagger.Subcomponent
 import io.spinnaker.spinrel.Bom
-import io.spinnaker.spinrel.ContainerRegistry
-import io.spinnaker.spinrel.ContainerTagGenerator
-import io.spinnaker.spinrel.GoogleCloudStorage
 import io.spinnaker.spinrel.HalconfigProfilePublisher
 import io.spinnaker.spinrel.SourceRoot
-import io.spinnaker.spinrel.SpinnakerServiceRegistry
-import java.nio.ByteBuffer
+import io.spinnaker.spinrel.VersionPublisher
 import java.nio.file.Path
 import javax.inject.Inject
 import mu.KotlinLogging
 
 class FlowBuildFinisher @Inject constructor(
-    private val cloudStorage: GoogleCloudStorage,
-    private val containerRegistry: ContainerRegistry,
-    private val serviceRegistry: SpinnakerServiceRegistry,
-    private val tagGenerator: ContainerTagGenerator,
     private val profilePublisher: HalconfigProfilePublisher,
+    private val versionPublisher: VersionPublisher,
     @SourceRoot private val repositoriesDir: Path
 ) {
 
@@ -36,34 +29,8 @@ class FlowBuildFinisher @Inject constructor(
         profilePublisher.publish(repositoriesDir, bom)
         (additionalVersions + bom.version).forEach { version ->
             logger.info { "Publishing Spinnaker version $version" }
-            uploadBomToGcs(bom, version)
-            tagContainers(bom, version)
+            versionPublisher.publish(bom, version)
         }
-    }
-
-    private fun uploadBomToGcs(bom: Bom, version: String) {
-        val gcsPath = "bom/$version.yml"
-        logger.info { "Writing $gcsPath to GCS bucket ${cloudStorage.bucket}" }
-        val versionedBom = bom.copy(version = version)
-        val writer = cloudStorage.writer(gcsPath) { blobInfo -> blobInfo.setContentType("application/x-yaml") }
-        writer.use {
-            it.write(ByteBuffer.wrap(versionedBom.toYaml().toByteArray(Charsets.UTF_8)))
-        }
-    }
-
-    private fun tagContainers(bom: Bom, spinnakerVersion: String) {
-        bom.services
-            .filterValues { it.version != null }
-            .filterKeys { serviceRegistry.byServiceName.containsKey(it) }
-            .mapValues { (_, serviceInfo) -> serviceInfo.version!! }
-            .forEach { (service, serviceVersion) ->
-                logger.info { "Tagging $service version $serviceVersion as Spinnaker version $spinnakerVersion" }
-                tagGenerator.generateTagsForVersion(serviceVersion)
-                    .zip(tagGenerator.generateTagsForVersion("spinnaker-$spinnakerVersion"))
-                    .forEach { (serviceVersionTag, spinnakerVersionTag) ->
-                        containerRegistry.addTag(service, existingTag = serviceVersionTag, newTag = spinnakerVersionTag)
-                    }
-            }
     }
 }
 

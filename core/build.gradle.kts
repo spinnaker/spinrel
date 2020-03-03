@@ -12,6 +12,7 @@ dependencies {
 
     testImplementation("com.google.cloud:google-cloud-nio")
     testImplementation("com.google.jimfs:jimfs")
+    testImplementation("io.mockk:mockk")
     testImplementation("io.strikt:strikt-core")
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
