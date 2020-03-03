@@ -28,7 +28,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 private const val RWXR_XR_X = 0b111101101
 private const val RW_R__R__ = 0b111101101
 
-class VersionPublisher @Inject constructor(
+class FlowBuildFinisher @Inject constructor(
     private val cloudStorage: GoogleCloudStorage,
     private val containerRegistry: ContainerRegistry,
     private val serviceRegistry: SpinnakerServiceRegistry,
@@ -38,7 +38,7 @@ class VersionPublisher @Inject constructor(
 
     private val logger = KotlinLogging.logger {}
 
-    fun publish(bomFile: Path, additionalVersions: Set<String> = setOf()) {
+    fun finishBuild(bomFile: Path, additionalVersions: Set<String> = setOf()) {
         val bom = Bom.readFromFile(bomFile)
         publishProfiles(repositoriesDir, bom)
         (additionalVersions + bom.version).forEach { version ->
@@ -170,17 +170,17 @@ class VersionPublisher @Inject constructor(
 }
 
 @Subcomponent
-interface VersionPublisherComponent {
-    fun versionPublisher(): VersionPublisher
+interface FlowBuildFinisherComponent {
+    fun flowBuildFinisher(): FlowBuildFinisher
 
     @Subcomponent.Factory
     interface Factory {
-        fun create(@BindsInstance @SourceRoot sourceRoot: Path): VersionPublisherComponent
+        fun create(@BindsInstance @SourceRoot sourceRoot: Path): FlowBuildFinisherComponent
     }
 }
 
-class PublishVersionCommand :
-    CliktCommand(name = "publish_version", help = "publish an already-built version of Spinnaker") {
+class FinishFlowBuildCommand :
+    CliktCommand(name = "finish_flow_build", help = "publish an already-built version of Spinnaker") {
 
     private val bomFile by option("--bom", help = "the path to the BOM file").path(
         canBeDir = false,
@@ -198,7 +198,7 @@ class PublishVersionCommand :
     val component by requireObject<MainComponent>()
 
     override fun run() {
-        component.versionPublisherComponentFactory().create(sourceRoot).versionPublisher()
-            .publish(bomFile, additionalVersions.toSet())
+        component.flowBuildFinisherComponentFactory().create(sourceRoot).flowBuildFinisher()
+            .finishBuild(bomFile, additionalVersions.toSet())
     }
 }

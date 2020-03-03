@@ -16,7 +16,7 @@ import io.spinnaker.spinrel.cli.gcsBucket
 
 fun main(args: Array<String>) {
     Spinrel()
-        .subcommands(PublishVersionCommand())
+        .subcommands(FinishFlowBuildCommand())
         .main(args)
 }
 
@@ -38,7 +38,7 @@ class Spinrel : CliktCommand() {
 )
 interface MainComponent {
 
-    fun versionPublisherComponentFactory(): VersionPublisherComponent.Factory
+    fun flowBuildFinisherComponentFactory(): FlowBuildFinisherComponent.Factory
 
     @Component.Factory
     interface Factory {

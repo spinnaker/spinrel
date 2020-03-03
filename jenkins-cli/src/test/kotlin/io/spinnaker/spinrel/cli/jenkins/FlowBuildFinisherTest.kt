@@ -33,9 +33,9 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 @ExtendWith(MockKExtension::class)
-class VersionPublisherTest {
+class FlowBuildFinisherTest {
 
-    private lateinit var versionPublisher: VersionPublisher
+    private lateinit var flowBuildFinisher: FlowBuildFinisher
 
     private lateinit var filesystem: FileSystem
     private lateinit var repositoriesDir: Path
@@ -59,7 +59,7 @@ class VersionPublisherTest {
 
         val storage = LocalStorageHelper.getOptions().service
         cloudStorage = GoogleCloudStorage(storage, GcsBucket("gcsBucket"))
-        versionPublisher = VersionPublisher(
+        flowBuildFinisher = FlowBuildFinisher(
             cloudStorage,
             containerRegistry,
             object : SpinnakerServiceRegistry {
@@ -83,7 +83,7 @@ class VersionPublisherTest {
     fun `publishVersion writes BOM to GCS`() {
         val inputBom = createMinimalBomWithVersion("1.2.3")
         val bomPath = inputBom.write()
-        versionPublisher.publish(bomPath)
+        flowBuildFinisher.finishBuild(bomPath)
 
         val storedBom = Bom.readFromString(cloudStorage.readUtf8String("bom/1.2.3.yml"))
 
@@ -94,7 +94,7 @@ class VersionPublisherTest {
     fun `publishVersion writes BOM to GCS with multiple spinnaker versions`() {
         val inputBom = createMinimalBomWithVersion("999")
         val bomPath = inputBom.write()
-        versionPublisher.publish(bomPath, additionalVersions = setOf("1.9", "master-latest-validated"))
+        flowBuildFinisher.finishBuild(bomPath, additionalVersions = setOf("1.9", "master-latest-validated"))
 
         val bom999 = Bom.readFromString(cloudStorage.readUtf8String("bom/999.yml"))
         expectThat(bom999).isEqualTo(inputBom.copy(version = "999"))
@@ -113,7 +113,7 @@ class VersionPublisherTest {
         containerSuffixes.add("")
         serviceRegistry.add(SpinnakerServiceInfo("front50"))
 
-        versionPublisher.publish(bomPath)
+        flowBuildFinisher.finishBuild(bomPath)
 
         verifyAll {
             containerRegistry.addTag("front50", existingTag = "1.3.22", newTag = "spinnaker-9.8.7")
@@ -126,7 +126,7 @@ class VersionPublisherTest {
         containerSuffixes.addAll(setOf("", "-foo"))
         serviceRegistry.add(SpinnakerServiceInfo("front50"))
 
-        versionPublisher.publish(bomPath)
+        flowBuildFinisher.finishBuild(bomPath)
 
         verifyAll {
             containerRegistry.addTag("front50", existingTag = "1.3.22", newTag = "spinnaker-9.8.7")
@@ -143,7 +143,7 @@ class VersionPublisherTest {
         containerSuffixes.add("")
         serviceRegistry.addAll(setOf(SpinnakerServiceInfo("front50"), SpinnakerServiceInfo("deck")))
 
-        versionPublisher.publish(bomPath)
+        flowBuildFinisher.finishBuild(bomPath)
 
         verifyAll {
             containerRegistry.addTag("front50", existingTag = "1.3.22", newTag = "spinnaker-9.8.7")
@@ -157,7 +157,7 @@ class VersionPublisherTest {
         containerSuffixes.add("")
         serviceRegistry.addAll(setOf(SpinnakerServiceInfo("front50")))
 
-        versionPublisher.publish(bomPath, additionalVersions = setOf("456"))
+        flowBuildFinisher.finishBuild(bomPath, additionalVersions = setOf("456"))
 
         verifyAll {
             containerRegistry.addTag("front50", existingTag = "1.3.22", newTag = "spinnaker-123")
@@ -174,7 +174,7 @@ class VersionPublisherTest {
         containerSuffixes.addAll(setOf("", "-foo"))
         serviceRegistry.addAll(setOf(SpinnakerServiceInfo("front50"), SpinnakerServiceInfo("deck")))
 
-        versionPublisher.publish(bomPath, additionalVersions = setOf("456"))
+        flowBuildFinisher.finishBuild(bomPath, additionalVersions = setOf("456"))
 
         verifyAll {
             containerRegistry.addTag("front50", existingTag = "1.3.22", newTag = "spinnaker-123")
@@ -197,7 +197,7 @@ class VersionPublisherTest {
         containerSuffixes.add("")
         serviceRegistry.add(SpinnakerServiceInfo("front50"))
 
-        versionPublisher.publish(bomPath)
+        flowBuildFinisher.finishBuild(bomPath)
 
         verify(exactly = 0) {
             containerRegistry.addTag("deck", any(), any())
@@ -215,7 +215,7 @@ class VersionPublisherTest {
 
         writeRepositoryFile("front50/halconfig/myconfig.yml", profileContent)
 
-        versionPublisher.publish(bomPath)
+        flowBuildFinisher.finishBuild(bomPath)
 
         val storedContent = cloudStorage.readUtf8String("front50/1.3.22/myconfig.yml")
 
@@ -230,7 +230,7 @@ class VersionPublisherTest {
 
         writeRepositoryFile("front50/myconfig.yml", "content")
 
-        versionPublisher.publish(bomPath)
+        flowBuildFinisher.finishBuild(bomPath)
 
         val halconfigBlobs = cloudStorage.list(Storage.BlobListOption.prefix("front50/"))
         expectThat(halconfigBlobs).isEmpty()
@@ -250,7 +250,7 @@ class VersionPublisherTest {
         writeRepositoryFile("$repositoryName/halconfig/$repositoryName.yml", "$repositoryName content")
         writeRepositoryFile("$serviceName/halconfig/$serviceName.yml", "$serviceName content")
 
-        versionPublisher.publish(bomPath)
+        flowBuildFinisher.finishBuild(bomPath)
 
         // the service name is used for the directory, but the filename is the same as that on disk, so in this case is
         // the repository name
@@ -272,7 +272,7 @@ class VersionPublisherTest {
         writeRepositoryFile("front50/halconfig/config1.yml", "config1 content")
         writeRepositoryFile("front50/halconfig/config2.yml", "config2 content")
 
-        versionPublisher.publish(bomPath)
+        flowBuildFinisher.finishBuild(bomPath)
 
         val storedContent1 = cloudStorage.readUtf8String("front50/1.3.22/config1.yml")
         expectThat(storedContent1).isEqualTo("config1 content")
@@ -292,7 +292,7 @@ class VersionPublisherTest {
         writeRepositoryFile("front50/halconfig/front50.yml", "front50 content")
         writeRepositoryFile("deck/halconfig/deck.yml", "deck content")
 
-        versionPublisher.publish(bomPath)
+        flowBuildFinisher.finishBuild(bomPath)
 
         val storedFront50Content = cloudStorage.readUtf8String("front50/1.3.22/front50.yml")
         expectThat(storedFront50Content).isEqualTo("front50 content")
@@ -313,7 +313,7 @@ class VersionPublisherTest {
         writeRepositoryFile("front50/halconfig/configdir/subdir/file3.yml", "file3 content")
         writeRepositoryFile("front50/halconfig/configdir/subdir/file4.yml", "file4 content")
 
-        versionPublisher.publish(bomPath)
+        flowBuildFinisher.finishBuild(bomPath)
 
         cloudStorage.readAllBytes("front50/1.3.22/configdir.tar.gz").also {
             val tarIn = TarArchiveInputStream(ByteArrayInputStream(it))
@@ -349,7 +349,7 @@ class VersionPublisherTest {
         val halconfigDir = createRepositoryDirectory("front50/halconfig")
         Files.createSymbolicLink(halconfigDir.resolve("myconfig.yml"), target)
 
-        versionPublisher.publish(bomPath)
+        flowBuildFinisher.finishBuild(bomPath)
 
         val storedContent = cloudStorage.readUtf8String("front50/1.3.22/myconfig.yml")
 
@@ -371,7 +371,7 @@ class VersionPublisherTest {
         val halconfigDir = createRepositoryDirectory("front50/halconfig")
         Files.createSymbolicLink(halconfigDir.resolve("configdir"), target)
 
-        versionPublisher.publish(bomPath)
+        flowBuildFinisher.finishBuild(bomPath)
 
         cloudStorage.readAllBytes("front50/1.3.22/configdir.tar.gz").also {
             val tarIn = TarArchiveInputStream(ByteArrayInputStream(it))
@@ -429,7 +429,7 @@ class VersionPublisherTest {
         val halconfigDir = createRepositoryDirectory("front50/halconfig")
         Files.createSymbolicLink(halconfigDir.resolve("configdir"), targetDir)
 
-        versionPublisher.publish(bomPath)
+        flowBuildFinisher.finishBuild(bomPath)
 
         cloudStorage.readAllBytes("front50/1.3.22/configdir.tar.gz").also {
             val tarIn = TarArchiveInputStream(ByteArrayInputStream(it))
