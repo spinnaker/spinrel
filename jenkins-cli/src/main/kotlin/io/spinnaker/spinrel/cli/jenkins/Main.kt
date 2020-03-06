@@ -9,7 +9,6 @@ import dagger.Component
 import io.spinnaker.spinrel.GcrProject
 import io.spinnaker.spinrel.GcsBucket
 import io.spinnaker.spinrel.GoogleApiHttpClientModule
-import io.spinnaker.spinrel.GoogleAuthModule
 import io.spinnaker.spinrel.GoogleCloudStorageModule
 import io.spinnaker.spinrel.GoogleContainerRegistryModule
 import io.spinnaker.spinrel.cli.ProductionConfigModule

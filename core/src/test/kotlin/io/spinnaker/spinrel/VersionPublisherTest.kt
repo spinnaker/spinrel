@@ -16,7 +16,7 @@ class VersionPublisherTest {
 
     private lateinit var versionPublisher: VersionPublisher
 
-    private lateinit var cloudStorage: GoogleCloudStorage
+    private lateinit var bomStorage: BomStorage
 
     @MockK(relaxUnitFun = true)
     private lateinit var containerRegistry: ContainerRegistry
@@ -31,9 +31,9 @@ class VersionPublisherTest {
         serviceRegistry = mutableSetOf()
 
         val storage = LocalStorageHelper.getOptions().service
-        cloudStorage = GoogleCloudStorage(storage, GcsBucket("gcsBucket"))
+        bomStorage = BomStorage(GoogleCloudStorage(storage, GcsBucket("gcsBucket")))
         versionPublisher = VersionPublisher(
-            cloudStorage,
+            bomStorage,
             containerRegistry,
             object : SpinnakerServiceRegistry {
                 override val byServiceName: Map<String, SpinnakerServiceInfo>
@@ -51,7 +51,7 @@ class VersionPublisherTest {
         val bom = createMinimalBomWithVersion("1.2.3")
         versionPublisher.publish(bom, "4.5.6")
 
-        val storedBom = Bom.readFromString(cloudStorage.readUtf8String("bom/4.5.6.yml"))
+        val storedBom = bomStorage.get("4.5.6")
 
         expectThat(storedBom).isEqualTo(bom.copy(version = "4.5.6"))
     }
