@@ -1,16 +1,15 @@
 package io.spinnaker.spinrel.cli.jenkins
 
-import com.google.common.jimfs.Jimfs
+import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verifyAll
 import io.spinnaker.spinrel.ArtifactSources
 import io.spinnaker.spinrel.Bom
+import io.spinnaker.spinrel.BomStorage
+import io.spinnaker.spinrel.GcsBucket
+import io.spinnaker.spinrel.GoogleCloudStorage
 import io.spinnaker.spinrel.VersionPublisher
-import java.nio.file.FileSystem
-import java.nio.file.Files
-import java.nio.file.Path
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -20,8 +19,7 @@ class AdditionalVersionPublisherTest {
 
     private lateinit var additionalVersionPublisher: AdditionalVersionPublisher
 
-    private lateinit var filesystem: FileSystem
-    private lateinit var repositoriesDir: Path
+    private lateinit var bomStorage: BomStorage
 
     @MockK(relaxUnitFun = true)
     private lateinit var versionPublisher: VersionPublisher
@@ -29,22 +27,17 @@ class AdditionalVersionPublisherTest {
     @BeforeEach
     fun setUp() {
 
-        filesystem = Jimfs.newFileSystem("spinfs")
-        repositoriesDir = filesystem.getPath("/path/to/repositories").also { Files.createDirectories(it) }
+        val storage = LocalStorageHelper.getOptions().service
+        bomStorage = BomStorage(GoogleCloudStorage(storage, GcsBucket("gcsBucket")))
 
-        additionalVersionPublisher = AdditionalVersionPublisher(versionPublisher)
-    }
-
-    @AfterEach
-    fun tearDown() {
-        filesystem.close()
+        additionalVersionPublisher = AdditionalVersionPublisher(bomStorage, versionPublisher)
     }
 
     @Test
     fun `calls publishers`() {
         val inputBom = createMinimalBomWithVersion("1.2.3")
-        val bomPath = inputBom.write()
-        additionalVersionPublisher.publish(bomPath, "999.1")
+        bomStorage.put(inputBom)
+        additionalVersionPublisher.publish("1.2.3", "999.1")
 
         verifyAll {
             versionPublisher.publish(inputBom, "999.1")
@@ -58,12 +51,5 @@ class AdditionalVersionPublisherTest {
             timestamp = "timestamp",
             version = version
         )
-    }
-
-    private fun Bom.write(): Path {
-        return filesystem.getPath("/path/to/bom")
-            .let { Files.createDirectories(it) }
-            .resolve("mybom.yaml")
-            .let { Files.write(it, toYaml().toByteArray(Charsets.UTF_8)) }
     }
 }
