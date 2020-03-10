@@ -4,6 +4,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Qualifier
 import kotlin.annotation.AnnotationTarget.FIELD
@@ -87,7 +88,7 @@ abstract class GoogleContainerRegistryModule {
         @ForGcrService
         fun provideOkHttpClient(@ForGoogleApis googleOkHttpClient: OkHttpClient): OkHttpClient {
             return googleOkHttpClient.newBuilder()
-                .addInterceptor(HttpLoggingInterceptor().apply { level = BASIC })
+                .addNetworkInterceptor(HttpLoggingInterceptor().apply { level = BASIC })
                 .addInterceptor(object : Interceptor {
                     override fun intercept(chain: Interceptor.Chain): Response {
                         val response = chain.proceed(chain.request())
@@ -99,7 +100,40 @@ abstract class GoogleContainerRegistryModule {
                         return response
                     }
                 })
+                .addInterceptor(TemporaryErrorRetryingInterceptor())
                 .build()
+        }
+    }
+}
+
+/**
+ * An interceptor that retries requests with status codes 502, 503, and 504. The <a
+ * href="https://docs.docker.com/registry/spec/api/">Docker API spec</a> says that these should be considered a
+ * temporary condition and retried. We've seen 504 errors in the wild, too.
+ */
+class TemporaryErrorRetryingInterceptor : Interceptor {
+
+    companion object {
+        const val MAX_ATTEMPTS = 10
+        const val INITIAL_DELAY_MS: Long = 10
+        const val MAX_DELAY_MS: Long = 1000
+    }
+
+    override fun intercept(chain: Interceptor.Chain): Response {
+
+        var attempts = 0
+        var delay = INITIAL_DELAY_MS
+        var response: Response
+        while (true) {
+            response = chain.proceed(chain.request())
+            ++attempts
+            if (attempts >= MAX_ATTEMPTS || response.code !in 502..504) {
+                return response
+            } else {
+                response.close()
+                TimeUnit.MILLISECONDS.sleep(delay)
+                delay = (delay * 2).coerceAtMost(MAX_DELAY_MS)
+            }
         }
     }
 }
