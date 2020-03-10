@@ -1,11 +1,10 @@
 package io.spinnaker.spinrel
 
-import java.nio.ByteBuffer
 import javax.inject.Inject
 import mu.KotlinLogging
 
 class VersionPublisher @Inject constructor(
-    private val cloudStorage: GoogleCloudStorage,
+    private val bomStorage: BomStorage,
     private val containerRegistry: ContainerRegistry,
     private val serviceRegistry: SpinnakerServiceRegistry,
     private val tagGenerator: ContainerTagGenerator
@@ -23,13 +22,8 @@ class VersionPublisher @Inject constructor(
     }
 
     private fun uploadBomToGcs(bom: Bom, version: String) {
-        val gcsPath = "bom/$version.yml"
-        logger.info { "Writing $gcsPath to GCS bucket ${cloudStorage.bucket}" }
         val versionedBom = bom.copy(version = version)
-        val writer = cloudStorage.writer(gcsPath) { blobInfo -> blobInfo.setContentType("application/x-yaml") }
-        writer.use {
-            it.write(ByteBuffer.wrap(versionedBom.toYaml().toByteArray(Charsets.UTF_8)))
-        }
+        bomStorage.put(versionedBom)
     }
 
     private fun tagContainers(bom: Bom, spinnakerVersion: String) {
