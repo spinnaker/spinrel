@@ -21,6 +21,7 @@ import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
+import strikt.assertions.succeeded
 
 @Module
 object TestingModule {
@@ -127,5 +128,48 @@ class GoogleContainerRegistryTest {
                 .isNotNull()
                 .and { endsWith("+json") }
         }
+    }
+
+    @Test
+    fun `retries on 502, 503, and 504 errors`() {
+        mockWebServer.enqueue(MockResponse().setResponseCode(502))
+        mockWebServer.enqueue(MockResponse().setResponseCode(503))
+        mockWebServer.enqueue(MockResponse().setResponseCode(504))
+        mockWebServer.enqueue(MockResponse().setBody("GET success"))
+        mockWebServer.enqueue(MockResponse().setResponseCode(502))
+        mockWebServer.enqueue(MockResponse().setResponseCode(503))
+        mockWebServer.enqueue(MockResponse().setResponseCode(504))
+        mockWebServer.enqueue(MockResponse().setBody("PUT success"))
+
+        expectCatching { gcr.addTag("myservice", "existingTag", "newTag") }
+            .succeeded()
+    }
+
+    @Test
+    fun `eventually gives up after retryable errors`() {
+        for (i in 1..TemporaryErrorRetryingInterceptor.MAX_ATTEMPTS) {
+            mockWebServer.enqueue(MockResponse().setResponseCode(502))
+        }
+        mockWebServer.enqueue(MockResponse().setBody("a success you'll never see"))
+
+        expectCatching { gcr.addTag("myservice", "existingTag", "newTag") }
+            .failed()
+            .isA<IOException>()
+            .and { get { message!! }.contains("502") }
+    }
+
+    @Test
+    fun `retries aren't cumulative across requests`() {
+        for (i in 1 until TemporaryErrorRetryingInterceptor.MAX_ATTEMPTS) {
+            mockWebServer.enqueue(MockResponse().setResponseCode(502))
+        }
+        mockWebServer.enqueue(MockResponse().setBody("GET success"))
+        for (i in 1 until TemporaryErrorRetryingInterceptor.MAX_ATTEMPTS) {
+            mockWebServer.enqueue(MockResponse().setResponseCode(503))
+        }
+        mockWebServer.enqueue(MockResponse().setBody("PUT success"))
+
+        expectCatching { gcr.addTag("myservice", "existingTag", "newTag") }
+            .succeeded()
     }
 }

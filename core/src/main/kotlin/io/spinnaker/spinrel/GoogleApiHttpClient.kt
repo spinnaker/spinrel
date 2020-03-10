@@ -59,6 +59,9 @@ object GoogleApiHttpClientModule {
         @ForGoogleApis
         fun provideOkHttpClient(@GoogleAccessToken googleAccessTokenSupplier: Supplier<String>): OkHttpClient {
             return OkHttpClient.Builder()
+                // This can also be done with an `Authenticator` object, but that only gets called after a
+                // `401 UNAUTHORIZED` response. We know we're always going to need to authenticate, so just preemptively
+                // add the header.
                 .addInterceptor(object : Interceptor {
                     override fun intercept(chain: Interceptor.Chain): Response {
                         val newRequest = chain.request().newBuilder()
@@ -66,6 +69,7 @@ object GoogleApiHttpClientModule {
                             .build()
                         return chain.proceed(newRequest)
                     }
-                }).build()
+                })
+                .build()
         }
     }
