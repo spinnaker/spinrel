@@ -21,20 +21,21 @@ class HalconfigProfilePublisher @Inject constructor(
     private val logger = KotlinLogging.logger {}
 
     fun publish(repositoriesRoot: Path, bom: Bom) {
-        data class ServiceData(val serviceName: String, val repositoryName: String?, val version: String?)
+        data class ServiceData(val serviceInfo: SpinnakerServiceInfo, val version: String)
         bom.services
+            .filter { (serviceName, _) -> serviceRegistry.byServiceName.containsKey(serviceName) }
+            .filter { (_, serviceInfo) -> serviceInfo.version != null }
             .map { (serviceName, serviceInfo) ->
                 ServiceData(
-                    serviceName,
-                    serviceRegistry.byServiceName[serviceName]?.repositoryName,
-                    serviceInfo.version
+                    serviceRegistry.byServiceName[serviceName]!!,
+                    serviceInfo.version!!
                 )
             }
-            .filter { it.repositoryName != null && it.version != null }
             .forEach {
-                val halconfigDir = repositoriesRoot.resolve(it.repositoryName!!).resolve("halconfig")
+                val halconfigDir =
+                    repositoriesRoot.resolve(it.serviceInfo.repositoryName).resolve(it.serviceInfo.halconfigDir)
                 if (Files.isDirectory(halconfigDir)) {
-                    publishFiles(it.serviceName, it.version!!, halconfigDir)
+                    publishFiles(it.serviceInfo.serviceName, it.version, halconfigDir)
                 }
             }
     }

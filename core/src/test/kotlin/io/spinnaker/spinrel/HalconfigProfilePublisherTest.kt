@@ -295,6 +295,23 @@ class HalconfigProfilePublisherTest {
         }
     }
 
+    @Test
+    fun `publishes from halconfigDir`() {
+        val bom = createMinimalBomWithVersion("1.2.3")
+            .withServiceVersion("front50", "1.3.22")
+        serviceRegistry.add(SpinnakerServiceInfo("front50", halconfigDir = "my/config/dir"))
+
+        val profileContent = "some stuff\n!!!\nhi how are you?? \uD83C\uDF61" // That's a dango, my friends.
+
+        writeRepositoryFile("front50/my/config/dir/myconfig.yml", profileContent)
+
+        profilePublisher.publish(repositoriesDir, bom)
+
+        val storedContent = cloudStorage.readUtf8String("front50/1.3.22/myconfig.yml")
+
+        expectThat(storedContent).isEqualTo(profileContent)
+    }
+
     private fun createMinimalBomWithVersion(version: String): Bom {
         return Bom(
             artifactSources = ArtifactSources("debianRepository", "dockerRegistry", "gitPrefix", "googleImageProject"),
