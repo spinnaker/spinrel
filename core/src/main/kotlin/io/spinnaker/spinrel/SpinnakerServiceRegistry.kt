@@ -2,7 +2,11 @@ package io.spinnaker.spinrel
 
 import javax.inject.Inject
 
-data class SpinnakerServiceInfo(val serviceName: String, val repositoryName: String? = serviceName)
+data class SpinnakerServiceInfo(
+    val serviceName: String,
+    val repositoryName: String = serviceName,
+    val halconfigDir: String = "halconfig"
+)
 
 interface SpinnakerServiceRegistry {
     val byServiceName: Map<String, SpinnakerServiceInfo>
@@ -22,7 +26,8 @@ class DefaultSpinnakerServiceRegistry @Inject constructor() :
         SpinnakerServiceInfo("kayenta"),
         SpinnakerServiceInfo(
             "monitoring-daemon",
-            repositoryName = "spinnaker-monitoring"
+            repositoryName = "spinnaker-monitoring",
+            halconfigDir = "spinnaker-monitoring-daemon/halconfig"
         ),
         SpinnakerServiceInfo("orca"),
         SpinnakerServiceInfo("rosco")
