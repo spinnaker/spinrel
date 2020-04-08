@@ -14,7 +14,7 @@ interface ContainerTagGenerator {
 class DefaultContainerTagGenerator @Inject constructor() :
     ContainerTagGenerator {
 
-    private val tagSuffixes = setOf("", "-slim", "-ubuntu", "-java8", "-ubuntu-java8")
+    private val tagSuffixes = setOf("", "-slim", "-ubuntu")
 
     override fun generateTagsForVersion(version: String): Set<String> = tagSuffixes.map { "$version$it" }.toSet()
 }
