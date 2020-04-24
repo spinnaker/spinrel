@@ -28,7 +28,7 @@ import retrofit2.http.Headers
 import retrofit2.http.PUT
 import retrofit2.http.Path
 
-class GcrProject(val name: String) {
+class GcrProject(private val name: String) {
     override fun toString() = name
 }
 

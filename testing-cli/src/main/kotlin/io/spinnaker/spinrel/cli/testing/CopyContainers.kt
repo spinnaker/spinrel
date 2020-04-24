@@ -65,7 +65,7 @@ class CopyContainersCommand :
         help = "the GCR project where containers will be copied"
     ).gcrProject().required()
 
-    val component by requireObject<MainComponent>()
+    private val component by requireObject<MainComponent>()
 
     override fun run() =
         component.containerCopierComponent().containerCopier().copyContainers(bomFile, sourceProject, destinationProject)
