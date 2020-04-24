@@ -6,7 +6,6 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.verifyAll
 import io.spinnaker.spinrel.ArtifactSources
 import io.spinnaker.spinrel.Bom
-import io.spinnaker.spinrel.HalconfigProfilePublisher
 import io.spinnaker.spinrel.VersionPublisher
 import java.nio.file.FileSystem
 import java.nio.file.Files
@@ -17,15 +16,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
-class FlowBuildFinisherTest {
+class BomPublisherTest {
 
-    private lateinit var flowBuildFinisher: FlowBuildFinisher
+    private lateinit var bomPublisher: BomPublisher
 
     private lateinit var filesystem: FileSystem
-    private lateinit var repositoriesDir: Path
-
-    @MockK(relaxUnitFun = true)
-    private lateinit var halconfigProfilePublisher: HalconfigProfilePublisher
 
     @MockK(relaxUnitFun = true)
     private lateinit var versionPublisher: VersionPublisher
@@ -34,13 +29,8 @@ class FlowBuildFinisherTest {
     fun setUp() {
 
         filesystem = Jimfs.newFileSystem("spinfs")
-        repositoriesDir = filesystem.getPath("/path/to/repositories").also { Files.createDirectories(it) }
 
-        flowBuildFinisher = FlowBuildFinisher(
-            halconfigProfilePublisher,
-            versionPublisher,
-            repositoriesDir
-        )
+        bomPublisher = BomPublisher(versionPublisher)
     }
 
     @AfterEach
@@ -52,10 +42,9 @@ class FlowBuildFinisherTest {
     fun `calls publishers`() {
         val inputBom = createMinimalBomWithVersion("1.2.3")
         val bomPath = inputBom.write()
-        flowBuildFinisher.finishBuild(bomPath)
+        bomPublisher.publish(bomPath)
 
         verifyAll {
-            halconfigProfilePublisher.publish(repositoriesDir, inputBom)
             versionPublisher.publish(inputBom, "1.2.3")
         }
     }
@@ -64,10 +53,9 @@ class FlowBuildFinisherTest {
     fun `calls publishers with additional version`() {
         val inputBom = createMinimalBomWithVersion("1.2.3")
         val bomPath = inputBom.write()
-        flowBuildFinisher.finishBuild(bomPath, additionalVersions = setOf("10111"))
+        bomPublisher.publish(bomPath, additionalVersions = setOf("10111"))
 
         verifyAll {
-            halconfigProfilePublisher.publish(repositoriesDir, inputBom)
             versionPublisher.publish(inputBom, "1.2.3")
             versionPublisher.publish(inputBom, "10111")
         }

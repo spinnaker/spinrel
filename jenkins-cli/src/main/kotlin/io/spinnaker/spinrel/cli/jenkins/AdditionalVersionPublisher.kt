@@ -44,7 +44,7 @@ class PublishAdditionalVersionCommand :
         help = "the version that will be created"
     ).required()
 
-    val component by requireObject<MainComponent>()
+    private val component by requireObject<MainComponent>()
 
     override fun run() {
         component.additionalVersionPublisherComponent().additionalVersionPublisher()

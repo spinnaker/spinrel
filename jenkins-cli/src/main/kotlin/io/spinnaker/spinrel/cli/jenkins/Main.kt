@@ -18,7 +18,7 @@ import javax.inject.Singleton
 
 fun main(args: Array<String>) {
     Spinrel()
-        .subcommands(FinishFlowBuildCommand(), PublishAdditionalVersionCommand())
+        .subcommands(BomPublisherCommand(), ProfilePublisherCommand(), PublishAdditionalVersionCommand())
         .main(args)
 }
 
@@ -41,7 +41,9 @@ class Spinrel : CliktCommand() {
 )
 interface MainComponent {
 
-    fun flowBuildFinisherComponentFactory(): FlowBuildFinisherComponent.Factory
+    fun bomPublisherComponent(): BomPublisherComponent
+
+    fun profilePublisherComponent(): ProfilePublisherComponent
 
     fun additionalVersionPublisherComponent(): AdditionalVersionPublisherComponent
 
