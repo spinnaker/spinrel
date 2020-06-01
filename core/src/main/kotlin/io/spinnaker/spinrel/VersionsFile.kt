@@ -1,3 +1,5 @@
+@file:UseSerializers(InstantSerializer::class, VersionNumberSerializer::class)
+
 package io.spinnaker.spinrel
 
 import com.charleskorn.kaml.Yaml
@@ -10,11 +12,13 @@ import kotlinx.serialization.PrimitiveKind
 import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.UseSerializers
 
 @Serializable
 data class VersionsFile(
-    val latestHalyard: String,
-    val latestSpinnaker: String,
+    val latestHalyard: VersionNumber,
+    val latestSpinnaker: VersionNumber,
     @SerialName("versions")
     val releases: List<ReleaseInfo> = listOf(),
     val illegalVersions: List<IllegalVersion> = listOf()
@@ -33,12 +37,11 @@ data class VersionsFile(
 
 @Serializable
 data class ReleaseInfo(
-    val version: String,
+    val version: VersionNumber,
     val alias: String,
     @SerialName("changelog")
     val changelogUrl: String,
     val minimumHalyardVersion: String,
-    @Serializable(with = InstantSerializer::class)
     val lastUpdate: Instant
 )
 
@@ -47,6 +50,20 @@ data class IllegalVersion(
     val version: String,
     val reason: String
 )
+
+private object VersionNumberSerializer : KSerializer<VersionNumber> {
+
+    override val descriptor: SerialDescriptor = PrimitiveDescriptor("VersionNumber", PrimitiveKind.STRING)
+    override fun serialize(encoder: Encoder, value: VersionNumber) = encoder.encodeString(value.toString())
+
+    override fun deserialize(decoder: Decoder): VersionNumber {
+        try {
+            return VersionNumber.parse(decoder.decodeString())
+        } catch (e: IllegalArgumentException) {
+            throw SerializationException(e.message ?: "", e)
+        }
+    }
+}
 
 private object InstantSerializer : KSerializer<Instant> {
     override val descriptor: SerialDescriptor = PrimitiveDescriptor("EpochMillisInstant", PrimitiveKind.LONG)

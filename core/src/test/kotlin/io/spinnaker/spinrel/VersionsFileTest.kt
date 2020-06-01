@@ -39,24 +39,24 @@ class VersionsFileTest {
         val versions = VersionsFile.readFromString(versionsYaml)
 
         expect {
-            that(versions.latestHalyard).isEqualTo("1.35.0")
-            that(versions.latestSpinnaker).isEqualTo("1.19.6")
+            that(versions.latestHalyard).isEqualTo(VersionNumber.parse("1.35.0"))
+            that(versions.latestSpinnaker).isEqualTo(VersionNumber.parse("1.19.6"))
             that(versions.releases).isEqualTo(
                 listOf(
                     ReleaseInfo(
-                        "1.17.10",
+                        VersionNumber.parse("1.17.10"),
                         "LlamaLlama",
                         "https://gist.github.com/spinnaker-release/d020714e9190763f27e35701e14c6bc1",
                         "1.17",
                         Instant.ofEpochMilli(1585939940343)),
                     ReleaseInfo(
-                        "1.18.9",
+                        VersionNumber.parse("1.18.9"),
                         "Longmire",
                         "https://gist.github.com/spinnaker-release/306d7e241272980642e918f64ed91fe3",
                         "1.29",
                         Instant.ofEpochMilli(1586973668800)),
                     ReleaseInfo(
-                        "1.19.6",
+                        VersionNumber.parse("1.19.6"),
                         "Gilmore Girls A Year in the Life",
                         "https://gist.github.com/spinnaker-release/cc4410d674679c5765246a40f28e3cad",
                         "1.32",
@@ -75,11 +75,11 @@ class VersionsFileTest {
     @Test
     fun `round trip bom`() {
         val input = VersionsFile(
-            latestHalyard = "1.35.0",
-            latestSpinnaker = "1.19.6",
+            latestHalyard = VersionNumber.parse("1.35.0"),
+            latestSpinnaker = VersionNumber.parse("1.19.6"),
             releases = listOf(
                 ReleaseInfo(
-                    "1.17.10",
+                    VersionNumber.parse("1.17.10"),
                     "LlamaLlama",
                     "https://gist.github.com/spinnaker-release/d020714e9190763f27e35701e14c6bc1",
                     "1.17",
