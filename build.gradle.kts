@@ -30,10 +30,12 @@ subprojects {
             dependency("com.google.jimfs:jimfs:1.1")
             dependency("com.google.cloud:google-cloud-nio:0.121.0")
             dependency("com.google.cloud:google-cloud-storage:1.108.0")
+            dependency("org.kohsuke:github-api:1.111")
             dependency("com.squareup.retrofit2:retrofit:2.9.0")
             dependency("io.github.microutils:kotlin-logging:1.7.9")
             dependency("io.mockk:mockk:1.10.0")
             dependency("org.apache.commons:commons-compress:1.20")
+            dependency("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
             dependency("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
             dependency("org.slf4j:slf4j-simple:1.7.30")
         }

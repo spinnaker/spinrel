@@ -18,7 +18,11 @@ import javax.inject.Singleton
 
 fun main(args: Array<String>) {
     Spinrel()
-        .subcommands(BomPublisherCommand(), ProfilePublisherCommand(), PublishAdditionalVersionCommand())
+        .subcommands(
+            BomPublisherCommand(),
+            ProfilePublisherCommand(),
+            PublishAdditionalVersionCommand(),
+            PublishSpinnakerCommand())
         .main(args)
 }
 
@@ -37,15 +41,22 @@ class Spinrel : CliktCommand() {
 
 @Singleton
 @Component(
-    modules = [GoogleApiHttpClientModule::class, GoogleCloudStorageModule::class, GoogleContainerRegistryModule::class, ProductionConfigModule::class]
+    modules = [
+        GoogleApiHttpClientModule::class,
+        GoogleCloudStorageModule::class,
+        GoogleContainerRegistryModule::class,
+        OkHttpClientModule::class,
+        ProductionConfigModule::class]
 )
 interface MainComponent {
+
+    fun additionalVersionPublisherComponent(): AdditionalVersionPublisherComponent
 
     fun bomPublisherComponent(): BomPublisherComponent
 
     fun profilePublisherComponent(): ProfilePublisherComponent
 
-    fun additionalVersionPublisherComponent(): AdditionalVersionPublisherComponent
+    fun spinnakerVersionPublisherComponent(): SpinnakerVersionPublisherComponent.Factory
 
     @Component.Factory
     interface Factory {
