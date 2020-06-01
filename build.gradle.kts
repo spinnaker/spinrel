@@ -22,15 +22,15 @@ subprojects {
     dependencyManagement {
         dependencies {
             dependency("com.charleskorn.kaml:kaml:0.17.0")
-            dependency("com.github.ajalt:clikt:2.6.0")
+            dependency("com.github.ajalt:clikt:2.7.1")
             dependencySet("com.google.dagger:2.27") {
                 entry("dagger")
                 entry("dagger-compiler")
             }
             dependency("com.google.jimfs:jimfs:1.1")
-            dependency("com.google.cloud:google-cloud-nio:0.120.0-alpha")
-            dependency("com.google.cloud:google-cloud-storage:1.107.0")
-            dependency("com.squareup.retrofit2:retrofit:2.8.1")
+            dependency("com.google.cloud:google-cloud-nio:0.121.0")
+            dependency("com.google.cloud:google-cloud-storage:1.108.0")
+            dependency("com.squareup.retrofit2:retrofit:2.9.0")
             dependency("io.github.microutils:kotlin-logging:1.7.9")
             dependency("io.mockk:mockk:1.10.0")
             dependency("org.apache.commons:commons-compress:1.20")
@@ -39,8 +39,8 @@ subprojects {
         }
         imports {
             mavenBom("com.google.guava:guava-bom:29.0-jre")
-            mavenBom("com.squareup.okhttp3:okhttp-bom:4.5.0")
-            mavenBom("io.strikt:strikt-bom:0.25.0")
+            mavenBom("com.squareup.okhttp3:okhttp-bom:4.7.2")
+            mavenBom("io.strikt:strikt-bom:0.26.1")
             mavenBom("org.junit:junit-bom:5.6.2")
         }
     }
@@ -50,6 +50,7 @@ subprojects {
     }
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        // The Jenkins server on which this runs only has Java 8 installed.
         kotlinOptions.jvmTarget = "1.8"
     }
 }

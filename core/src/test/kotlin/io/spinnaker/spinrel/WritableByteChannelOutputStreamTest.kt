@@ -7,9 +7,9 @@ import java.nio.channels.WritableByteChannel
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 
 object WritableByteChannelOutputStreamTest {
 
@@ -145,19 +145,19 @@ object WritableByteChannelOutputStreamTest {
         subject.close()
 
         expectCatching { subject.write(3) }
-            .failed()
+            .isFailure()
             .isA<ClosedChannelException>()
 
         expectCatching { subject.write(byteArrayOf(0x03)) }
-            .failed()
+            .isFailure()
             .isA<ClosedChannelException>()
 
         expectCatching { subject.write(byteArrayOf(0x01, 0x02, 0x03), 0, 1) }
-            .failed()
+            .isFailure()
             .isA<ClosedChannelException>()
 
         expectCatching { subject.flush() }
-            .failed()
+            .isFailure()
             .isA<ClosedChannelException>()
     }
 

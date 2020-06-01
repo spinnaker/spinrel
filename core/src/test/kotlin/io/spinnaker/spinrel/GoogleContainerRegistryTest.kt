@@ -17,11 +17,11 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.endsWith
-import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
-import strikt.assertions.succeeded
+import strikt.assertions.isSuccess
 
 @Module
 object TestingModule {
@@ -86,7 +86,7 @@ class GoogleContainerRegistryTest {
         mockWebServer.enqueue(MockResponse())
 
         expectCatching { gcr.addTag("myservice", "existingTag", "newTag") }
-            .failed()
+            .isFailure()
             .isA<IOException>()
             .and { get { message!! }.contains("404") }
     }
@@ -97,7 +97,7 @@ class GoogleContainerRegistryTest {
         mockWebServer.enqueue(MockResponse().setResponseCode(500))
 
         expectCatching { gcr.addTag("myservice", "existingTag", "newTag") }
-            .failed()
+            .isFailure()
             .isA<IOException>()
             .and { get { message!! }.contains("500") }
     }
@@ -142,7 +142,7 @@ class GoogleContainerRegistryTest {
         mockWebServer.enqueue(MockResponse().setBody("PUT success"))
 
         expectCatching { gcr.addTag("myservice", "existingTag", "newTag") }
-            .succeeded()
+            .isSuccess()
     }
 
     @Test
@@ -153,7 +153,7 @@ class GoogleContainerRegistryTest {
         mockWebServer.enqueue(MockResponse().setBody("a success you'll never see"))
 
         expectCatching { gcr.addTag("myservice", "existingTag", "newTag") }
-            .failed()
+            .isFailure()
             .isA<IOException>()
             .and { get { message!! }.contains("502") }
     }
@@ -170,6 +170,6 @@ class GoogleContainerRegistryTest {
         mockWebServer.enqueue(MockResponse().setBody("PUT success"))
 
         expectCatching { gcr.addTag("myservice", "existingTag", "newTag") }
-            .succeeded()
+            .isSuccess()
     }
 }
