@@ -55,7 +55,7 @@ class GoogleContainerRegistryTest {
     @BeforeEach
     fun setUp() {
         mockWebServer = MockWebServer()
-        mockWebServer.start(8080)
+        mockWebServer.start()
         gcr = DaggerTestingComponent.factory().create(mockWebServer.url("/api/").toString()).googleContainerRegistry()
     }
 
