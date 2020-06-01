@@ -11,7 +11,6 @@ dependencies {
     implementation("com.google.dagger:dagger")
     implementation("com.google.guava:guava")
     implementation("com.squareup.okhttp3:logging-interceptor")
-    implementation("com.squareup.okhttp3:mockwebserver")
     implementation("com.squareup.retrofit2:retrofit")
     implementation("io.github.microutils:kotlin-logging")
     implementation("org.apache.commons:commons-compress")
@@ -19,6 +18,7 @@ dependencies {
 
     testImplementation("com.google.cloud:google-cloud-nio")
     testImplementation("com.google.jimfs:jimfs")
+    testImplementation("com.squareup.okhttp3:mockwebserver")
     testImplementation("io.mockk:mockk")
     testImplementation("io.strikt:strikt-core")
     testImplementation("org.junit.jupiter:junit-jupiter-api")
