@@ -22,7 +22,8 @@ fun main(args: Array<String>) {
             BomPublisherCommand(),
             ProfilePublisherCommand(),
             PublishAdditionalVersionCommand(),
-            PublishSpinnakerCommand())
+            PublishSpinnakerCommand()
+        )
         .main(args)
 }
 
@@ -46,7 +47,8 @@ class Spinrel : CliktCommand() {
         GoogleCloudStorageModule::class,
         GoogleContainerRegistryModule::class,
         OkHttpClientModule::class,
-        ProductionConfigModule::class]
+        ProductionConfigModule::class
+    ]
 )
 interface MainComponent {
 

@@ -1,15 +1,15 @@
 package io.spinnaker.spinrel
 
 import com.google.common.collect.Iterables
-import java.nio.ByteBuffer
-import java.nio.channels.ClosedChannelException
-import java.nio.channels.WritableByteChannel
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
+import java.nio.ByteBuffer
+import java.nio.channels.ClosedChannelException
+import java.nio.channels.WritableByteChannel
 
 object WritableByteChannelOutputStreamTest {
 
@@ -30,7 +30,8 @@ object WritableByteChannelOutputStreamTest {
             }
         }
 
-        val expectedWriteOperations = Iterables.partition(1..100,
+        val expectedWriteOperations = Iterables.partition(
+            1..100,
             BUF_SIZE
         ).toByteLists()
         expectThat(testChannel.writeOperations).isEqualTo(expectedWriteOperations)
@@ -52,7 +53,8 @@ object WritableByteChannelOutputStreamTest {
             }
         }
 
-        val expectedWriteOperations = Iterables.partition(1..100,
+        val expectedWriteOperations = Iterables.partition(
+            1..100,
             BUF_SIZE
         ).toByteLists()
         expectThat(testChannel.writeOperations).isEqualTo(expectedWriteOperations)
@@ -78,7 +80,8 @@ object WritableByteChannelOutputStreamTest {
                 subject.write(bytes, i * 2, 2)
         }
 
-        val expectedWriteOperations = Iterables.partition(1..100,
+        val expectedWriteOperations = Iterables.partition(
+            1..100,
             BUF_SIZE
         ).toByteLists()
         expectThat(testChannel.writeOperations).isEqualTo(expectedWriteOperations)
@@ -104,7 +107,8 @@ object WritableByteChannelOutputStreamTest {
                 subject.write(bytes, i * 10, 10)
         }
 
-        val expectedWriteOperations = Iterables.partition(1..100,
+        val expectedWriteOperations = Iterables.partition(
+            1..100,
             BUF_SIZE
         ).toByteLists()
         expectThat(testChannel.writeOperations).isEqualTo(expectedWriteOperations)

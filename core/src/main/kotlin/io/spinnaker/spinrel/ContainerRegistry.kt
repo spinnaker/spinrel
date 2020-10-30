@@ -3,15 +3,6 @@ package io.spinnaker.spinrel
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
-import java.io.IOException
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
-import javax.inject.Qualifier
-import kotlin.annotation.AnnotationTarget.FIELD
-import kotlin.annotation.AnnotationTarget.FUNCTION
-import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
-import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
-import kotlin.annotation.AnnotationTarget.VALUE_PARAMETER
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
@@ -27,6 +18,15 @@ import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import java.io.IOException
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Qualifier
+import kotlin.annotation.AnnotationTarget.FIELD
+import kotlin.annotation.AnnotationTarget.FUNCTION
+import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
+import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
+import kotlin.annotation.AnnotationTarget.VALUE_PARAMETER
 
 class GcrProject(private val name: String) {
     override fun toString() = name
@@ -89,17 +89,19 @@ abstract class GoogleContainerRegistryModule {
         fun provideOkHttpClient(@ForGoogleApis googleOkHttpClient: OkHttpClient): OkHttpClient {
             return googleOkHttpClient.newBuilder()
                 .addNetworkInterceptor(HttpLoggingInterceptor().apply { level = BASIC })
-                .addInterceptor(object : Interceptor {
-                    override fun intercept(chain: Interceptor.Chain): Response {
-                        val response = chain.proceed(chain.request())
-                        if (!response.isSuccessful) {
-                            throw IOException(
-                                "${chain.request().method} ${chain.request().url} received ${response.code} code: ${response.message}"
-                            )
+                .addInterceptor(
+                    object : Interceptor {
+                        override fun intercept(chain: Interceptor.Chain): Response {
+                            val response = chain.proceed(chain.request())
+                            if (!response.isSuccessful) {
+                                throw IOException(
+                                    "${chain.request().method} ${chain.request().url} received ${response.code} code: ${response.message}"
+                                )
+                            }
+                            return response
                         }
-                        return response
                     }
-                })
+                )
                 .addInterceptor(TemporaryErrorRetryingInterceptor())
                 .build()
         }

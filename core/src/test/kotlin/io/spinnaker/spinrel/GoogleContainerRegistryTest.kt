@@ -5,9 +5,6 @@ import dagger.BindsInstance
 import dagger.Component
 import dagger.Module
 import dagger.Provides
-import java.io.IOException
-import java.util.function.Supplier
-import javax.inject.Singleton
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterEach
@@ -22,6 +19,9 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
 import strikt.assertions.isSuccess
+import java.io.IOException
+import java.util.function.Supplier
+import javax.inject.Singleton
 
 @Module
 object TestingModule {

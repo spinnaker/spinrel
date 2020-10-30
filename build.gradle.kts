@@ -3,7 +3,7 @@ plugins {
     kotlin("jvm") version kotlinVersion apply false
     kotlin("plugin.serialization") version kotlinVersion apply false
     kotlin("kapt") version kotlinVersion apply false
-    id("org.jlleitschuh.gradle.ktlint") version "9.2.1" apply false
+    id("org.jlleitschuh.gradle.ktlint") version "9.4.1" apply false
     id("io.spring.dependency-management") version "1.0.9.RELEASE"
 }
 

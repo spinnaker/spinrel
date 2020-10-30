@@ -18,7 +18,7 @@ interface ProductionConfigModule {
 
     @Binds
     fun bindSpinnakerServiceRegistry(spinnakerServiceRegistry: DefaultSpinnakerServiceRegistry):
-            SpinnakerServiceRegistry
+        SpinnakerServiceRegistry
 
     companion object {
         @Provides

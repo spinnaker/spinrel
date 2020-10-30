@@ -3,14 +3,6 @@ package io.spinnaker.spinrel.cli.jenkins
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
-import java.nio.file.Path
-import javax.inject.Inject
-import javax.inject.Qualifier
-import kotlin.annotation.AnnotationTarget.FIELD
-import kotlin.annotation.AnnotationTarget.FUNCTION
-import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
-import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
-import kotlin.annotation.AnnotationTarget.VALUE_PARAMETER
 import org.eclipse.jgit.api.FetchCommand
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.LsRemoteCommand
@@ -23,6 +15,14 @@ import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.kohsuke.github.GitHub
 import org.kohsuke.github.GitHubBuilder
+import java.nio.file.Path
+import javax.inject.Inject
+import javax.inject.Qualifier
+import kotlin.annotation.AnnotationTarget.FIELD
+import kotlin.annotation.AnnotationTarget.FUNCTION
+import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
+import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
+import kotlin.annotation.AnnotationTarget.VALUE_PARAMETER
 
 // This interface really only exists because the GitHub library we're using has a fluent interface interface that is
 // very difficult to mock or fake.

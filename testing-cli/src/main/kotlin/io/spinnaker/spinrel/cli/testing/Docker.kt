@@ -1,10 +1,10 @@
 package io.spinnaker.spinrel.cli.testing
 
 import io.spinnaker.spinrel.GcrProject
+import mu.KotlinLogging
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
-import mu.KotlinLogging
 
 class Docker @Inject constructor() {
 

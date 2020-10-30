@@ -1,7 +1,7 @@
 package io.spinnaker.spinrel
 
-import javax.inject.Inject
 import mu.KotlinLogging
+import javax.inject.Inject
 
 class VersionPublisher @Inject constructor(
     private val bomStorage: BomStorage,

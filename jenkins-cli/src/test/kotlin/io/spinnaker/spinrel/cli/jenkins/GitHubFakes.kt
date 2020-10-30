@@ -1,8 +1,8 @@
 package io.spinnaker.spinrel.cli.jenkins
 
+import org.eclipse.jgit.api.Git
 import java.io.IOException
 import java.nio.file.Path
-import org.eclipse.jgit.api.Git
 
 internal class FakeGitHubApi : GitHubApi {
 

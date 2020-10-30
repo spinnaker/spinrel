@@ -1,18 +1,19 @@
 package io.spinnaker.spinrel
 
 import com.google.common.jimfs.Jimfs
-import java.nio.file.Files
 import org.junit.jupiter.api.Test
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import java.nio.file.Files
 
 class BomTest {
 
     @Test
     fun `all fields parsed`() {
-        val bomYaml = """
+        val bomYaml =
+            """
             artifactSources:
               debianRepository: https://dl.bintray.com/spinnaker-releases/debians
               dockerRegistry: gcr.io/spinnaker-marketplace
@@ -33,7 +34,7 @@ class BomTest {
               defaultArtifact: {}
             timestamp: '2019-12-24 22:28:39'
             version: master-latest-unvalidated
-        """.trimIndent()
+            """.trimIndent()
 
         val bom = Bom.readFromString(bomYaml)
 
@@ -68,7 +69,8 @@ class BomTest {
 
     @Test
     fun `minimal bom is parsed`() {
-        val bomYaml = """
+        val bomYaml =
+            """
             artifactSources:
               debianRepository: requiredDebianRepository
               dockerRegistry: requiredDockerRegistry
@@ -78,7 +80,7 @@ class BomTest {
             services: {}
             timestamp: requiredTimestamp
             version: requiredVersion
-        """.trimIndent()
+            """.trimIndent()
 
         val bom = Bom.readFromString(bomYaml)
 
@@ -96,7 +98,8 @@ class BomTest {
 
     @Test
     fun `read bom from file`() {
-        val bomYaml = """
+        val bomYaml =
+            """
             artifactSources:
               debianRepository: requiredDebianRepository
               dockerRegistry: requiredDockerRegistry
@@ -106,7 +109,7 @@ class BomTest {
             services: {}
             timestamp: requiredTimestamp
             version: requiredVersion
-        """.trimIndent()
+            """.trimIndent()
 
         val bom = Jimfs.newFileSystem("spinfs").use { fs ->
             fs.getPath("/path/to/bom")
