@@ -1,7 +1,6 @@
 package io.spinnaker.spinrel
 
 import com.google.common.base.Suppliers
-import dagger.BindsInstance
 import dagger.Component
 import dagger.Module
 import dagger.Provides
@@ -28,35 +27,62 @@ object TestingModule {
     @Provides
     @GoogleAccessToken
     fun provideGoogleAccessToken(): Supplier<String> {
-        // An access token lasts an hour, but we'll expire a little early just to be safe.
         return Suppliers.ofInstance("google-access-token")
     }
-
-    @Provides
-    fun provideGcrProject() = GcrProject("spinfun")
 }
 
 @Singleton
-@Component(modules = [TestingModule::class, GoogleApiHttpClientModule::class, GoogleContainerRegistryModule::class])
+@Component(modules = [TestingModule::class, GoogleApiHttpClientModule::class, GoogleDockerRegistryModule::class])
 interface TestingComponent {
-    fun googleContainerRegistry(): GoogleContainerRegistry
+    fun googleDockerRegistryFactory(): GoogleDockerRegistryFactory
+}
 
-    @Component.Factory
-    interface Factory {
-        fun create(@BindsInstance @GcrBaseUrl baseUrl: String): TestingComponent
+class GoogleDockerRegistryFactoryTest {
+
+    @Test
+    fun `getDockerApiBase() without scheme`() {
+        expectThat(GoogleDockerRegistryFactory.getDockerApiBase("my.docker.reg").toString())
+            .isEqualTo("https://my.docker.reg/v2/")
+        expectThat(GoogleDockerRegistryFactory.getDockerApiBase("my.docker.reg/").toString())
+            .isEqualTo("https://my.docker.reg/v2/")
+        expectThat(GoogleDockerRegistryFactory.getDockerApiBase("my.docker.reg/foo").toString())
+            .isEqualTo("https://my.docker.reg/v2/foo/")
+        expectThat(GoogleDockerRegistryFactory.getDockerApiBase("my.docker.reg/foo/").toString())
+            .isEqualTo("https://my.docker.reg/v2/foo/")
+        expectThat(GoogleDockerRegistryFactory.getDockerApiBase("my.docker.reg/foo/bar/baz").toString())
+            .isEqualTo("https://my.docker.reg/v2/foo/bar/baz/")
+        expectThat(GoogleDockerRegistryFactory.getDockerApiBase("my.docker.reg/foo/bar/baz/").toString())
+            .isEqualTo("https://my.docker.reg/v2/foo/bar/baz/")
+    }
+
+    @Test
+    fun `getDockerApiBase() with scheme`() {
+        expectThat(GoogleDockerRegistryFactory.getDockerApiBase("http://my.docker.reg").toString())
+            .isEqualTo("http://my.docker.reg/v2/")
+        expectThat(GoogleDockerRegistryFactory.getDockerApiBase("http://my.docker.reg/").toString())
+            .isEqualTo("http://my.docker.reg/v2/")
+        expectThat(GoogleDockerRegistryFactory.getDockerApiBase("http://my.docker.reg/foo").toString())
+            .isEqualTo("http://my.docker.reg/v2/foo/")
+        expectThat(GoogleDockerRegistryFactory.getDockerApiBase("http://my.docker.reg/foo/").toString())
+            .isEqualTo("http://my.docker.reg/v2/foo/")
+        expectThat(GoogleDockerRegistryFactory.getDockerApiBase("http://my.docker.reg/foo/bar/baz").toString())
+            .isEqualTo("http://my.docker.reg/v2/foo/bar/baz/")
+        expectThat(GoogleDockerRegistryFactory.getDockerApiBase("http://my.docker.reg/foo/bar/baz/").toString())
+            .isEqualTo("http://my.docker.reg/v2/foo/bar/baz/")
     }
 }
 
-class GoogleContainerRegistryTest {
+class DockerRegistryImplTest {
 
     private lateinit var mockWebServer: MockWebServer
-    private lateinit var gcr: GoogleContainerRegistry
+    private lateinit var docker: DockerRegistry
 
     @BeforeEach
     fun setUp() {
         mockWebServer = MockWebServer()
         mockWebServer.start()
-        gcr = DaggerTestingComponent.factory().create(mockWebServer.url("/api/").toString()).googleContainerRegistry()
+        val dockerFactory = DaggerTestingComponent.create().googleDockerRegistryFactory()
+        docker = dockerFactory.create(mockWebServer.url("/docker/reg").toString())
     }
 
     @AfterEach
@@ -67,7 +93,7 @@ class GoogleContainerRegistryTest {
         mockWebServer.enqueue(MockResponse().setBody("myManifest"))
         mockWebServer.enqueue(MockResponse())
 
-        gcr.addTag("myservice", "existingTag", "newTag")
+        docker.addTag("myservice", "existingTag", "newTag")
 
         with(mockWebServer.takeRequest()) {
             expectThat(method!!).isEqualTo("GET")
@@ -85,7 +111,7 @@ class GoogleContainerRegistryTest {
         mockWebServer.enqueue(MockResponse().setResponseCode(404))
         mockWebServer.enqueue(MockResponse())
 
-        expectCatching { gcr.addTag("myservice", "existingTag", "newTag") }
+        expectCatching { docker.addTag("myservice", "existingTag", "newTag") }
             .isFailure()
             .isA<IOException>()
             .and { get { message!! }.contains("404") }
@@ -96,7 +122,7 @@ class GoogleContainerRegistryTest {
         mockWebServer.enqueue(MockResponse())
         mockWebServer.enqueue(MockResponse().setResponseCode(500))
 
-        expectCatching { gcr.addTag("myservice", "existingTag", "newTag") }
+        expectCatching { docker.addTag("myservice", "existingTag", "newTag") }
             .isFailure()
             .isA<IOException>()
             .and { get { message!! }.contains("500") }
@@ -107,7 +133,7 @@ class GoogleContainerRegistryTest {
         mockWebServer.enqueue(MockResponse().setBody("myManifest"))
         mockWebServer.enqueue(MockResponse())
 
-        gcr.addTag("myservice", "existingTag", "newTag")
+        docker.addTag("myservice", "existingTag", "newTag")
 
         with(mockWebServer.takeRequest()) {
             expectThat(getHeader("Authorization"))
@@ -121,7 +147,7 @@ class GoogleContainerRegistryTest {
         mockWebServer.enqueue(MockResponse().setBody("myManifest"))
         mockWebServer.enqueue(MockResponse())
 
-        gcr.addTag("myservice", "existingTag", "newTag")
+        docker.addTag("myservice", "existingTag", "newTag")
 
         with(mockWebServer.takeRequest()) {
             expectThat(getHeader("Accept"))
@@ -141,7 +167,7 @@ class GoogleContainerRegistryTest {
         mockWebServer.enqueue(MockResponse().setResponseCode(504))
         mockWebServer.enqueue(MockResponse().setBody("PUT success"))
 
-        expectCatching { gcr.addTag("myservice", "existingTag", "newTag") }
+        expectCatching { docker.addTag("myservice", "existingTag", "newTag") }
             .isSuccess()
     }
 
@@ -152,7 +178,7 @@ class GoogleContainerRegistryTest {
         }
         mockWebServer.enqueue(MockResponse().setBody("a success you'll never see"))
 
-        expectCatching { gcr.addTag("myservice", "existingTag", "newTag") }
+        expectCatching { docker.addTag("myservice", "existingTag", "newTag") }
             .isFailure()
             .isA<IOException>()
             .and { get { message!! }.contains("502") }
@@ -169,7 +195,7 @@ class GoogleContainerRegistryTest {
         }
         mockWebServer.enqueue(MockResponse().setBody("PUT success"))
 
-        expectCatching { gcr.addTag("myservice", "existingTag", "newTag") }
+        expectCatching { docker.addTag("myservice", "existingTag", "newTag") }
             .isSuccess()
     }
 }

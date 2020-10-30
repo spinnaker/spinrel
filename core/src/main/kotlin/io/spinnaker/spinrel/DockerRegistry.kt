@@ -1,8 +1,11 @@
 package io.spinnaker.spinrel
 
+import com.google.common.annotations.VisibleForTesting
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
@@ -28,19 +31,59 @@ import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
 import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
 import kotlin.annotation.AnnotationTarget.VALUE_PARAMETER
 
-class GcrProject(private val name: String) {
-    override fun toString() = name
-}
-
-interface ContainerRegistry {
+interface DockerRegistry {
     fun addTag(service: String, existingTag: String, newTag: String)
 }
 
-class GoogleContainerRegistry @Inject constructor(private val gcrService: GcrService, private val gcrProject: GcrProject) : ContainerRegistry {
+fun interface DockerRegistryFactory {
+    fun create(dockerRegistry: String): DockerRegistry
+}
+
+/**
+ * A [DockerRegistryFactory] that uses GCP authentication for its constructed [DockerRegistry].
+ */
+class GoogleDockerRegistryFactory @Inject constructor(
+    @ForGoogleDockerService private val okHttpClient: OkHttpClient
+) : DockerRegistryFactory {
+
+    override fun create(dockerRegistry: String): DockerRegistry {
+        val dockerService = Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl(getDockerApiBase(dockerRegistry))
+            .build()
+            .create(DockerService::class.java)
+        return DockerRegistryImpl(dockerService)
+    }
+
+    companion object {
+        @VisibleForTesting
+        internal fun getDockerApiBase(dockerRegistry: String): HttpUrl {
+            val registryWithScheme: String
+            if (Regex("^https?://").find(dockerRegistry) == null) {
+                registryWithScheme = "https://$dockerRegistry"
+            } else {
+                registryWithScheme = dockerRegistry
+            }
+            return getDockerApiBase(registryWithScheme.toHttpUrl())
+        }
+
+        internal fun getDockerApiBase(dockerRegistry: HttpUrl): HttpUrl {
+            val encodedPath: String
+            if (dockerRegistry.encodedPath.endsWith('/')) {
+                encodedPath = dockerRegistry.encodedPath
+            } else {
+                encodedPath = "${dockerRegistry.encodedPath}/"
+            }
+            return dockerRegistry.newBuilder().encodedPath("/v2$encodedPath").build()
+        }
+    }
+}
+
+class DockerRegistryImpl @Inject constructor(private val dockerService: DockerService) : DockerRegistry {
 
     override fun addTag(service: String, existingTag: String, newTag: String) {
-        val manifestResponse = gcrService.retrieveManifest(gcrProject, service, existingTag).execute()
-        gcrService.storeManifest(gcrProject, service, newTag, manifestResponse.body()!!.string().toRequestBody())
+        val manifestResponse = dockerService.retrieveManifest(service, existingTag).execute()
+        dockerService.storeManifest(service, newTag, manifestResponse.body()!!.string().toRequestBody())
             .execute()
     }
 }
@@ -49,43 +92,32 @@ class GoogleContainerRegistry @Inject constructor(private val gcrService: GcrSer
 @MustBeDocumented
 @Retention(AnnotationRetention.RUNTIME)
 @Target(FIELD, VALUE_PARAMETER, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER)
-annotation class ForGcrService
+annotation class ForGoogleDockerService
 
-@Qualifier
-@MustBeDocumented
-@Retention(AnnotationRetention.RUNTIME)
-@Target(FIELD, VALUE_PARAMETER, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER)
-annotation class GcrBaseUrl
-
-interface GcrService {
+interface DockerService {
 
     // e.g. https://gcr.io/v2/spinnaker-marketplace/clouddriver/manifests/6.6.0-20200228142642
-    @GET("{project}/{imageName}/manifests/{tag}")
+    @GET("{imageName}/manifests/{tag}")
     // Without this header it sends us some "prettyjws" format that can't be resubmitted in the PUT request
     @Headers("Accept: application/vnd.docker.distribution.manifest.v2+json")
-    fun retrieveManifest(@Path("project") project: GcrProject, @Path("imageName") imageName: String, @Path("tag") tag: String): Call<ResponseBody>
+    fun retrieveManifest(@Path("imageName") imageName: String, @Path("tag") tag: String): Call<ResponseBody>
 
-    @PUT("{project}/{imageName}/manifests/{tag}")
-    fun storeManifest(@Path("project") project: GcrProject, @Path("imageName") imageName: String, @Path("tag") tag: String, @Body manifest: RequestBody): Call<ResponseBody>
+    @PUT("{imageName}/manifests/{tag}")
+    fun storeManifest(
+        @Path("imageName") imageName: String,
+        @Path("tag") tag: String,
+        @Body manifest: RequestBody
+    ): Call<ResponseBody>
 }
 
 @Module
-abstract class GoogleContainerRegistryModule {
+abstract class GoogleDockerRegistryModule {
     @Binds
-    abstract fun bindGoogleContainerRegistry(registry: GoogleContainerRegistry): ContainerRegistry
+    abstract fun bindDockerRegistryFactory(dockerRegistryFactory: GoogleDockerRegistryFactory): DockerRegistryFactory
 
     companion object {
         @Provides
-        fun provideGcrService(@ForGcrService okHttpClient: OkHttpClient, @GcrBaseUrl baseUrl: String): GcrService {
-            return Retrofit.Builder()
-                .client(okHttpClient)
-                .baseUrl(baseUrl)
-                .build()
-                .create(GcrService::class.java)
-        }
-
-        @Provides
-        @ForGcrService
+        @ForGoogleDockerService
         fun provideOkHttpClient(@ForGoogleApis googleOkHttpClient: OkHttpClient): OkHttpClient {
             return googleOkHttpClient.newBuilder()
                 .addNetworkInterceptor(HttpLoggingInterceptor().apply { level = BASIC })
