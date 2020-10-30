@@ -7,6 +7,7 @@ import dagger.Provides
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -30,6 +31,8 @@ import kotlin.annotation.AnnotationTarget.FUNCTION
 import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
 import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
 import kotlin.annotation.AnnotationTarget.VALUE_PARAMETER
+
+const val DOCKER_SCHEMA = "application/vnd.docker.distribution.manifest.v2+json"
 
 interface DockerRegistry {
     fun addTag(service: String, existingTag: String, newTag: String)
@@ -83,8 +86,8 @@ class DockerRegistryImpl @Inject constructor(private val dockerService: DockerSe
 
     override fun addTag(service: String, existingTag: String, newTag: String) {
         val manifestResponse = dockerService.retrieveManifest(service, existingTag).execute()
-        dockerService.storeManifest(service, newTag, manifestResponse.body()!!.string().toRequestBody())
-            .execute()
+        val manifestRequest = manifestResponse.body()!!.string().toRequestBody(DOCKER_SCHEMA.toMediaType())
+        dockerService.storeManifest(service, newTag, manifestRequest).execute()
     }
 }
 
@@ -99,7 +102,7 @@ interface DockerService {
     // e.g. https://gcr.io/v2/spinnaker-marketplace/clouddriver/manifests/6.6.0-20200228142642
     @GET("{imageName}/manifests/{tag}")
     // Without this header it sends us some "prettyjws" format that can't be resubmitted in the PUT request
-    @Headers("Accept: application/vnd.docker.distribution.manifest.v2+json")
+    @Headers("Accept: $DOCKER_SCHEMA")
     fun retrieveManifest(@Path("imageName") imageName: String, @Path("tag") tag: String): Call<ResponseBody>
 
     @PUT("{imageName}/manifests/{tag}")
