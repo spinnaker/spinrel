@@ -4,16 +4,16 @@ package io.spinnaker.spinrel
 
 import com.charleskorn.kaml.Yaml
 import java.time.Instant
-import kotlinx.serialization.Decoder
-import kotlinx.serialization.Encoder
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.PrimitiveDescriptor
-import kotlinx.serialization.PrimitiveKind
-import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.UseSerializers
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 @Serializable
 data class VersionsFile(
@@ -25,12 +25,12 @@ data class VersionsFile(
 ) {
 
     fun toYaml(): String {
-        return Yaml.default.stringify(serializer(), this)
+        return Yaml.default.encodeToString(serializer(), this)
     }
 
     companion object {
         fun readFromString(string: String): VersionsFile {
-            return Yaml.default.parse(serializer(), string)
+            return Yaml.default.decodeFromString(serializer(), string)
         }
     }
 }
@@ -53,7 +53,7 @@ data class IllegalVersion(
 
 private object VersionNumberSerializer : KSerializer<VersionNumber> {
 
-    override val descriptor: SerialDescriptor = PrimitiveDescriptor("VersionNumber", PrimitiveKind.STRING)
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("VersionNumber", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: VersionNumber) = encoder.encodeString(value.toString())
 
     override fun deserialize(decoder: Decoder): VersionNumber {
@@ -66,7 +66,7 @@ private object VersionNumberSerializer : KSerializer<VersionNumber> {
 }
 
 private object InstantSerializer : KSerializer<Instant> {
-    override val descriptor: SerialDescriptor = PrimitiveDescriptor("EpochMillisInstant", PrimitiveKind.LONG)
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("EpochMillisInstant", PrimitiveKind.LONG)
     override fun deserialize(decoder: Decoder): Instant = Instant.ofEpochMilli(decoder.decodeLong())
     override fun serialize(encoder: Encoder, value: Instant) = encoder.encodeLong(value.toEpochMilli())
 }

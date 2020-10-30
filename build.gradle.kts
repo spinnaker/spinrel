@@ -1,5 +1,5 @@
 plugins {
-    val kotlinVersion = "1.3.72"
+    val kotlinVersion = "1.4.10"
     kotlin("jvm") version kotlinVersion apply false
     kotlin("plugin.serialization") version kotlinVersion apply false
     kotlin("kapt") version kotlinVersion apply false
@@ -21,7 +21,7 @@ subprojects {
 
     dependencyManagement {
         dependencies {
-            dependency("com.charleskorn.kaml:kaml:0.17.0")
+            dependency("com.charleskorn.kaml:kaml:0.25.0")
             dependency("com.github.ajalt:clikt:2.7.1")
             dependencySet("com.google.dagger:2.27") {
                 entry("dagger")
@@ -36,7 +36,10 @@ subprojects {
             dependency("io.mockk:mockk:1.10.0")
             dependency("org.apache.commons:commons-compress:1.20")
             dependency("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
-            dependency("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
+            dependency("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.1")
+            // Kotlinx serialization adds a transitive dependency on kotlin-reflect 1.3, so we need to pin this to a
+            // newer version (even though we don't directly depend on it)
+            dependency("org.jetbrains.kotlin:kotlin-reflect:1.4.10")
             dependency("org.slf4j:slf4j-simple:1.7.30")
         }
         imports {

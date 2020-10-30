@@ -109,7 +109,7 @@ class SpinnakerVersionPublisher @Inject constructor(
                     .filter { !it.version.fromSameReleaseBranchAs(destinationVersion) } +
                         releaseInfo)
         var updatedVersionsFile = versionsFile.copy(releases = updatedReleases)
-        if (updatedVersionsFile.releases.map { it.version }.max() == destinationVersion) {
+        if (updatedVersionsFile.releases.map { it.version }.maxOrNull() == destinationVersion) {
             updatedVersionsFile = updatedVersionsFile.copy(latestSpinnaker = destinationVersion)
         }
         return updatedVersionsFile
@@ -122,9 +122,9 @@ class SpinnakerVersionPublisher @Inject constructor(
         val sameBranchVersions = versionsFile.releases
             .map { it.version }
             .filter { it.fromSameReleaseBranchAs(destinationVersion) }
-        if (sameBranchVersions.isNotEmpty() && destinationVersion <= sameBranchVersions.max()!!) {
+        if (sameBranchVersions.isNotEmpty() && destinationVersion <= sameBranchVersions.maxOrNull()!!) {
             throw IllegalArgumentException(
-                "Version ${sameBranchVersions.max()} already exists and is greater than " +
+                "Version ${sameBranchVersions.maxOrNull()} already exists and is greater than " +
                         "destination version $destinationVersion"
             )
         }
