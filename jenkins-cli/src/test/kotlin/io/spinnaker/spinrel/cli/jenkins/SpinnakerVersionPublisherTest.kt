@@ -41,6 +41,7 @@ import strikt.assertions.isSuccess
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @ExtendWith(MockKExtension::class)
 class SpinnakerVersionPublisherTest {
@@ -494,7 +495,8 @@ class SpinnakerVersionPublisherTest {
         alias = "SomeNetflixShow",
         changelogUrl = "https://github.com/foo/bar",
         minimumHalyardVersion = "1.22",
-        lastUpdate = Instant.now()
+        // serialization only writes ms precision
+        lastUpdate = Instant.now().truncatedTo(ChronoUnit.MILLIS)
     )
 
     private fun createChangelogsRepo(): GitHubCloner {
