@@ -17,9 +17,6 @@ import io.spinnaker.spinrel.VersionNumber
 import io.spinnaker.spinrel.VersionPublisher
 import io.spinnaker.spinrel.VersionsFile
 import io.spinnaker.spinrel.VersionsFileStorage
-import java.nio.file.Files
-import java.nio.file.Path
-import java.time.Instant
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.mockwebserver.MockResponse
@@ -41,6 +38,10 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isRegularFile
 import strikt.assertions.isSuccess
+import java.nio.file.Files
+import java.nio.file.Path
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @ExtendWith(MockKExtension::class)
 class SpinnakerVersionPublisherTest {
@@ -79,7 +80,13 @@ class SpinnakerVersionPublisherTest {
                 get() = serviceRegistry.associateBy { it.serviceName }
         }
         spinnakerVersionPublisher = SpinnakerVersionPublisher(
-            httpClient, bomStorage, versionsFileStorage, versionPublisher, spinnakerServices, github, githubCloner
+            httpClient,
+            bomStorage,
+            versionsFileStorage,
+            versionPublisher,
+            spinnakerServices,
+            github,
+            githubCloner
         )
     }
 
@@ -220,7 +227,9 @@ class SpinnakerVersionPublisherTest {
         val updatedVersionsFile = versionsFileStorage.get()
         with(updatedVersionsFile) {
             expectThat(releases).containsExactlyInAnyOrder(
-                existingVersionsFile.releases[0], newRelease, existingVersionsFile.releases[2]
+                existingVersionsFile.releases[0],
+                newRelease,
+                existingVersionsFile.releases[2]
             )
             expectThat(latestSpinnaker).isEqualTo(VersionNumber.parse("1.14.7"))
         }
@@ -245,7 +254,9 @@ class SpinnakerVersionPublisherTest {
         val updatedVersionsFile = versionsFileStorage.get()
         with(updatedVersionsFile) {
             expectThat(releases).containsExactlyInAnyOrder(
-                existingVersionsFile.releases[0], existingVersionsFile.releases[1], newRelease
+                existingVersionsFile.releases[0],
+                existingVersionsFile.releases[1],
+                newRelease
             )
             expectThat(latestSpinnaker).isEqualTo(VersionNumber.parse("1.13.2"))
         }
@@ -372,14 +383,16 @@ class SpinnakerVersionPublisherTest {
             more data
             tags: i like tags
             the end
-            """.trimIndent())
+            """.trimIndent()
+        )
         val patchOneChangelog = writeChangelogFile(
             "1.2.1",
             """
             hello
             tags: tags4eva
             goodbyte
-            """.trimIndent())
+            """.trimIndent()
+        )
 
         spinnakerVersionPublisher.publish(sourceVersion, newRelease)
 
@@ -394,7 +407,8 @@ class SpinnakerVersionPublisherTest {
         var (sourceVersion, newRelease) = configureSuccess()
         newRelease = newRelease.copy(version = VersionNumber.parse("1.2.1"))
 
-        val previousChangelogContents = """
+        val previousChangelogContents =
+            """
             no tags
             are
             here
@@ -413,7 +427,8 @@ class SpinnakerVersionPublisherTest {
         var (sourceVersion, newRelease) = configureSuccess()
         newRelease = newRelease.copy(version = VersionNumber.parse("1.2.1"))
 
-        val previousChangelogContents = """
+        val previousChangelogContents =
+            """
             this file is already deprecated
             tags: foo bar deprecated baz
             """.trimIndent()
@@ -480,7 +495,8 @@ class SpinnakerVersionPublisherTest {
         alias = "SomeNetflixShow",
         changelogUrl = "https://github.com/foo/bar",
         minimumHalyardVersion = "1.22",
-        lastUpdate = Instant.now()
+        // serialization only writes ms precision
+        lastUpdate = Instant.now().truncatedTo(ChronoUnit.MILLIS)
     )
 
     private fun createChangelogsRepo(): GitHubCloner {

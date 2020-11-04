@@ -19,7 +19,7 @@ class VersionPublisherTest {
     private lateinit var bomStorage: BomStorage
 
     @MockK(relaxUnitFun = true)
-    private lateinit var containerRegistry: ContainerRegistry
+    private lateinit var dockerRegistry: DockerRegistry
 
     private lateinit var containerSuffixes: MutableSet<String>
     private lateinit var serviceRegistry: MutableSet<SpinnakerServiceInfo>
@@ -34,7 +34,7 @@ class VersionPublisherTest {
         bomStorage = BomStorage(GoogleCloudStorage(storage, GcsBucket("gcsBucket")))
         versionPublisher = VersionPublisher(
             bomStorage,
-            containerRegistry,
+            DockerRegistryFactory { dockerRegistry },
             object : SpinnakerServiceRegistry {
                 override val byServiceName: Map<String, SpinnakerServiceInfo>
                     get() = serviceRegistry.associateBy { it.serviceName }
@@ -65,7 +65,7 @@ class VersionPublisherTest {
         versionPublisher.publish(bom, "1.2.3")
 
         verifyAll {
-            containerRegistry.addTag("front50", existingTag = "1.3.22", newTag = "spinnaker-1.2.3")
+            dockerRegistry.addTag("front50", existingTag = "1.3.22", newTag = "spinnaker-1.2.3")
         }
     }
 
@@ -78,8 +78,8 @@ class VersionPublisherTest {
         versionPublisher.publish(bom, "1.2.3")
 
         verifyAll {
-            containerRegistry.addTag("front50", existingTag = "1.3.22", newTag = "spinnaker-1.2.3")
-            containerRegistry.addTag("front50", existingTag = "1.3.22-foo", newTag = "spinnaker-1.2.3-foo")
+            dockerRegistry.addTag("front50", existingTag = "1.3.22", newTag = "spinnaker-1.2.3")
+            dockerRegistry.addTag("front50", existingTag = "1.3.22-foo", newTag = "spinnaker-1.2.3-foo")
         }
     }
 
@@ -94,8 +94,8 @@ class VersionPublisherTest {
         versionPublisher.publish(bom, "1.2.3")
 
         verifyAll {
-            containerRegistry.addTag("front50", existingTag = "1.3.22", newTag = "spinnaker-1.2.3")
-            containerRegistry.addTag("deck", existingTag = "9.8", newTag = "spinnaker-1.2.3")
+            dockerRegistry.addTag("front50", existingTag = "1.3.22", newTag = "spinnaker-1.2.3")
+            dockerRegistry.addTag("deck", existingTag = "9.8", newTag = "spinnaker-1.2.3")
         }
     }
 
@@ -110,7 +110,7 @@ class VersionPublisherTest {
         versionPublisher.publish(bom, "1.2.3")
 
         verify(exactly = 0) {
-            containerRegistry.addTag("deck", any(), any())
+            dockerRegistry.addTag("deck", any(), any())
         }
     }
 
