@@ -4,6 +4,9 @@ import com.google.common.base.Suppliers
 import com.google.common.io.ByteStreams
 import dagger.Module
 import dagger.Provides
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import okhttp3.Response
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
@@ -14,9 +17,6 @@ import kotlin.annotation.AnnotationTarget.FUNCTION
 import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
 import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
 import kotlin.annotation.AnnotationTarget.VALUE_PARAMETER
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
-import okhttp3.Response
 
 @Qualifier
 @MustBeDocumented
@@ -55,21 +55,23 @@ object GoogleAuthModule {
 
 @Module
 object GoogleApiHttpClientModule {
-        @Provides
-        @ForGoogleApis
-        fun provideOkHttpClient(@GoogleAccessToken googleAccessTokenSupplier: Supplier<String>): OkHttpClient {
-            return OkHttpClient.Builder()
-                // This can also be done with an `Authenticator` object, but that only gets called after a
-                // `401 UNAUTHORIZED` response. We know we're always going to need to authenticate, so just preemptively
-                // add the header.
-                .addInterceptor(object : Interceptor {
+    @Provides
+    @ForGoogleApis
+    fun provideOkHttpClient(@GoogleAccessToken googleAccessTokenSupplier: Supplier<String>): OkHttpClient {
+        return OkHttpClient.Builder()
+            // This can also be done with an `Authenticator` object, but that only gets called after a
+            // `401 UNAUTHORIZED` response. We know we're always going to need to authenticate, so just preemptively
+            // add the header.
+            .addInterceptor(
+                object : Interceptor {
                     override fun intercept(chain: Interceptor.Chain): Response {
                         val newRequest = chain.request().newBuilder()
                             .addHeader("Authorization", "Bearer ${googleAccessTokenSupplier.get()}")
                             .build()
                         return chain.proceed(newRequest)
                     }
-                })
-                .build()
-        }
+                }
+            )
+            .build()
     }
+}

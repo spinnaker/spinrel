@@ -1,10 +1,9 @@
 package io.spinnaker.spinrel.cli.testing
 
-import io.spinnaker.spinrel.GcrProject
+import mu.KotlinLogging
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
-import mu.KotlinLogging
 
 class Docker @Inject constructor() {
 
@@ -16,13 +15,13 @@ class Docker @Inject constructor() {
     // https://cloud.google.com/run/docs/authenticating/developers
     fun copyContainer(
         imageName: String,
-        sourceProject: GcrProject,
+        sourceRegistry: String,
         sourceTag: String,
-        destProject: GcrProject,
+        destRegistry: String,
         destTag: String
     ) {
-        val sourceUrl = "gcr.io/$sourceProject/$imageName:$sourceTag"
-        val destUrl = "gcr.io/$destProject/$imageName:$destTag"
+        val sourceUrl = "$sourceRegistry/$imageName:$sourceTag"
+        val destUrl = "$destRegistry/$imageName:$destTag"
         runCommand("pull", sourceUrl)
         runCommand("tag", sourceUrl, destUrl)
         runCommand("push", destUrl)

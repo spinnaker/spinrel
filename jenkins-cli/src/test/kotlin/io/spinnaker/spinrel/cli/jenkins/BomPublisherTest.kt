@@ -7,13 +7,13 @@ import io.mockk.verifyAll
 import io.spinnaker.spinrel.ArtifactSources
 import io.spinnaker.spinrel.Bom
 import io.spinnaker.spinrel.VersionPublisher
-import java.nio.file.FileSystem
-import java.nio.file.Files
-import java.nio.file.Path
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.nio.file.FileSystem
+import java.nio.file.Files
+import java.nio.file.Path
 
 @ExtendWith(MockKExtension::class)
 class BomPublisherTest {

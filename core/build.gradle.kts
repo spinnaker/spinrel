@@ -14,7 +14,7 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit")
     implementation("io.github.microutils:kotlin-logging")
     implementation("org.apache.commons:commons-compress")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core")
 
     testImplementation("com.google.cloud:google-cloud-nio")
     testImplementation("com.google.jimfs:jimfs")

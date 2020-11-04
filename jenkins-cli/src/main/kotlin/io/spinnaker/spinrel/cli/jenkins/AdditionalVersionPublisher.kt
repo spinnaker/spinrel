@@ -7,8 +7,8 @@ import com.github.ajalt.clikt.parameters.options.required
 import dagger.Subcomponent
 import io.spinnaker.spinrel.BomStorage
 import io.spinnaker.spinrel.VersionPublisher
-import javax.inject.Inject
 import mu.KotlinLogging
+import javax.inject.Inject
 
 class AdditionalVersionPublisher @Inject constructor(
     private val bomStorage: BomStorage,

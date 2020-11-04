@@ -11,7 +11,7 @@ dependencies {
 
     implementation(project(":core"))
     implementation(project(":cli-shared"))
-    implementation("com.github.ajalt:clikt")
+    implementation("com.github.ajalt.clikt:clikt")
     implementation("com.google.dagger:dagger")
     implementation("io.github.microutils:kotlin-logging")
 
