@@ -1,11 +1,11 @@
 package io.spinnaker.spinrel
 
-import javax.inject.Inject
 import mu.KotlinLogging
+import javax.inject.Inject
 
 class VersionPublisher @Inject constructor(
     private val bomStorage: BomStorage,
-    private val containerRegistry: ContainerRegistry,
+    private val dockerRegistryFactory: DockerRegistryFactory,
     private val serviceRegistry: SpinnakerServiceRegistry,
     private val tagGenerator: ContainerTagGenerator
 ) {
@@ -27,6 +27,7 @@ class VersionPublisher @Inject constructor(
     }
 
     private fun tagContainers(bom: Bom, spinnakerVersion: String) {
+        val containerRegistry = dockerRegistryFactory.create(bom.artifactSources.dockerRegistry)
         bom.services
             .filterValues { it.version != null }
             .filterKeys { serviceRegistry.byServiceName.containsKey(it) }

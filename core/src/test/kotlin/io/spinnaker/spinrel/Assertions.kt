@@ -1,8 +1,8 @@
 package io.spinnaker.spinrel
 
 import com.google.api.gax.paging.Page
-import java.nio.channels.Channel
 import strikt.api.Assertion
+import java.nio.channels.Channel
 
 internal fun <T : Channel> Assertion.Builder<T>.isClosed() =
     assert("is closed") {

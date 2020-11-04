@@ -18,15 +18,15 @@ import io.spinnaker.spinrel.VersionNumber
 import io.spinnaker.spinrel.VersionPublisher
 import io.spinnaker.spinrel.VersionsFile
 import io.spinnaker.spinrel.VersionsFileStorage
+import mu.KotlinLogging
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import mu.KotlinLogging
-import okhttp3.OkHttpClient
-import okhttp3.Request
 
 /**
  * Creates a released version of Spinnaker.
@@ -105,11 +105,12 @@ class SpinnakerVersionPublisher @Inject constructor(
 
         val destinationVersion = releaseInfo.version
         val updatedReleases = (
-                versionsFile.releases
-                    .filter { !it.version.fromSameReleaseBranchAs(destinationVersion) } +
-                        releaseInfo)
+            versionsFile.releases
+                .filter { !it.version.fromSameReleaseBranchAs(destinationVersion) } +
+                releaseInfo
+            )
         var updatedVersionsFile = versionsFile.copy(releases = updatedReleases)
-        if (updatedVersionsFile.releases.map { it.version }.max() == destinationVersion) {
+        if (updatedVersionsFile.releases.map { it.version }.maxOrNull() == destinationVersion) {
             updatedVersionsFile = updatedVersionsFile.copy(latestSpinnaker = destinationVersion)
         }
         return updatedVersionsFile
@@ -122,10 +123,10 @@ class SpinnakerVersionPublisher @Inject constructor(
         val sameBranchVersions = versionsFile.releases
             .map { it.version }
             .filter { it.fromSameReleaseBranchAs(destinationVersion) }
-        if (sameBranchVersions.isNotEmpty() && destinationVersion <= sameBranchVersions.max()!!) {
+        if (sameBranchVersions.isNotEmpty() && destinationVersion <= sameBranchVersions.maxOrNull()!!) {
             throw IllegalArgumentException(
-                "Version ${sameBranchVersions.max()} already exists and is greater than " +
-                        "destination version $destinationVersion"
+                "Version ${sameBranchVersions.maxOrNull()} already exists and is greater than " +
+                    "destination version $destinationVersion"
             )
         }
     }
@@ -173,7 +174,8 @@ class SpinnakerVersionPublisher @Inject constructor(
         val version = releaseInfo.version
         val formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss Z").withZone(ZoneOffset.UTC)
         val timestamp = formatter.format(releaseInfo.lastUpdate)
-        var contents = """
+        var contents =
+            """
           ---
           title: Version ${version.major}.${version.minor}
           changelog_title: Version $version
@@ -182,7 +184,7 @@ class SpinnakerVersionPublisher @Inject constructor(
           version: $version
           ---
 
-        """.trimIndent()
+            """.trimIndent()
         for (patch in version.patch downTo 0) {
             val patchVersion = VersionNumber(version.major, version.minor, patch)
             contents += "<script src=\"${releaseInfo.changelogUrl}.js?file=$patchVersion.md\"></script>\n"
@@ -247,7 +249,8 @@ class PublishSpinnakerCommand :
         help = "the existing version that will be published as --destination-version"
     ).required()
     private val destinationVersion by option(
-        "--destination-version", help = "the version that will be published"
+        "--destination-version",
+        help = "the version that will be published"
     )
         .convert { VersionNumber.parse(it) }
         .required()

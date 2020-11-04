@@ -1,16 +1,17 @@
 package io.spinnaker.spinrel
 
-import java.time.Instant
 import org.junit.jupiter.api.Test
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.time.Instant
 
 class VersionsFileTest {
 
     @Test
     fun `all fields parsed`() {
-        val versionsYaml = """
+        val versionsYaml =
+            """
             latestHalyard: 1.35.0
             latestSpinnaker: 1.19.6
             versions:
@@ -34,7 +35,7 @@ class VersionsFileTest {
               reason: Broken apache config makes the UI unreachable
             - version: 1.4.0
               reason: UI does not load
-        """.trimIndent()
+            """.trimIndent()
 
         val versions = VersionsFile.readFromString(versionsYaml)
 
@@ -48,19 +49,22 @@ class VersionsFileTest {
                         "LlamaLlama",
                         "https://gist.github.com/spinnaker-release/d020714e9190763f27e35701e14c6bc1",
                         "1.17",
-                        Instant.ofEpochMilli(1585939940343)),
+                        Instant.ofEpochMilli(1585939940343)
+                    ),
                     ReleaseInfo(
                         VersionNumber.parse("1.18.9"),
                         "Longmire",
                         "https://gist.github.com/spinnaker-release/306d7e241272980642e918f64ed91fe3",
                         "1.29",
-                        Instant.ofEpochMilli(1586973668800)),
+                        Instant.ofEpochMilli(1586973668800)
+                    ),
                     ReleaseInfo(
                         VersionNumber.parse("1.19.6"),
                         "Gilmore Girls A Year in the Life",
                         "https://gist.github.com/spinnaker-release/cc4410d674679c5765246a40f28e3cad",
                         "1.32",
-                        Instant.ofEpochMilli(1587657219292))
+                        Instant.ofEpochMilli(1587657219292)
+                    )
                 )
             )
             that(versions.illegalVersions).isEqualTo(
@@ -83,7 +87,9 @@ class VersionsFileTest {
                     "LlamaLlama",
                     "https://gist.github.com/spinnaker-release/d020714e9190763f27e35701e14c6bc1",
                     "1.17",
-                    Instant.ofEpochMilli(1585939940343))),
+                    Instant.ofEpochMilli(1585939940343)
+                )
+            ),
             illegalVersions = listOf(
                 IllegalVersion("1.2.0", "Broken apache config makes the UI unreachable"),
                 IllegalVersion("1.4.0", "UI does not load")
