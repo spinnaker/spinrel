@@ -13,7 +13,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(project(":core"))
     implementation(project(":cli-shared"))
-    implementation("com.github.ajalt:clikt")
+    implementation("com.github.ajalt.clikt:clikt")
     implementation("com.google.cloud:google-cloud-storage")
     implementation("com.google.dagger:dagger")
     implementation("com.google.guava:guava")

@@ -1,10 +1,10 @@
 package io.spinnaker.spinrel
 
 import com.charleskorn.kaml.Yaml
-import java.nio.file.Files
-import java.nio.file.Path
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
+import java.nio.file.Files
+import java.nio.file.Path
 
 private val logger = KotlinLogging.logger {}
 
@@ -18,7 +18,7 @@ data class Bom(
 ) {
 
     fun toYaml(): String {
-        return Yaml.default.stringify(serializer(), this)
+        return Yaml.default.encodeToString(serializer(), this)
     }
 
     companion object {
@@ -29,7 +29,7 @@ data class Bom(
         }
 
         fun readFromString(string: String): Bom {
-            return Yaml.default.parse(serializer(), string)
+            return Yaml.default.decodeFromString(serializer(), string)
         }
     }
 }

@@ -2,16 +2,13 @@ package io.spinnaker.spinrel.cli.testing
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.requireObject
-import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.path
 import dagger.Subcomponent
 import io.spinnaker.spinrel.Bom
 import io.spinnaker.spinrel.ContainerTagGenerator
-import io.spinnaker.spinrel.GcrProject
 import io.spinnaker.spinrel.SpinnakerServiceRegistry
-import io.spinnaker.spinrel.cli.gcrProject
 import java.nio.file.Path
 import javax.inject.Inject
 
@@ -21,9 +18,10 @@ class ContainerCopier @Inject constructor(
     private val tagGenerator: ContainerTagGenerator
 ) {
 
-    fun copyContainers(bomFile: Path, sourceProject: GcrProject, destProject: GcrProject) {
+    fun copyContainers(bomFile: Path, sourceRegistryArg: String?, destRegistry: String) {
         val bom = Bom.readFromFile(bomFile)
 
+        val sourceRegistry = sourceRegistryArg ?: bom.artifactSources.dockerRegistry
         bom.services
             .filterValues { it.version != null }
             .filterKeys { serviceRegistry.byServiceName.containsKey(it) }
@@ -32,8 +30,10 @@ class ContainerCopier @Inject constructor(
                 tagGenerator.generateTagsForVersion(version).forEach { tag ->
                     docker.copyContainer(
                         imageName = service,
-                        sourceProject = sourceProject, sourceTag = tag,
-                        destProject = destProject, destTag = tag
+                        sourceRegistry = sourceRegistry,
+                        sourceTag = tag,
+                        destRegistry = destRegistry,
+                        destTag = tag
                     )
                 }
             }
@@ -48,7 +48,7 @@ interface ContainerCopierComponent {
 class CopyContainersCommand :
     CliktCommand(
         name = "copy_containers",
-        help = "copy containers for a release from the --source-project to --destination-project"
+        help = "copy containers for a release from the --source-registry to --destination-registry"
     ) {
 
     private val bomFile by option("--bom", help = "the path to the BOM file").path(
@@ -56,17 +56,17 @@ class CopyContainersCommand :
         mustBeReadable = true
     ).required()
 
-    private val sourceProject by option(
-        "--source-project",
-        help = "the GCR project containing the containers"
-    ).gcrProject().default(GcrProject("spinnaker-marketplace"))
-    private val destinationProject by option(
-        "--destination-project",
-        help = "the GCR project where containers will be copied"
-    ).gcrProject().required()
+    private val sourceRegistry by option(
+        "--source-registry",
+        help = "the docker registry containing the containers"
+    )
+    private val destinationRegistry by option(
+        "--destination-registry",
+        help = "the docker registry where containers will be copied"
+    ).required()
 
     private val component by requireObject<MainComponent>()
 
     override fun run() =
-        component.containerCopierComponent().containerCopier().copyContainers(bomFile, sourceProject, destinationProject)
+        component.containerCopierComponent().containerCopier().copyContainers(bomFile, sourceRegistry, destinationRegistry)
 }
