@@ -5,17 +5,17 @@ import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
 import com.google.common.io.ByteStreams
 import com.google.common.io.CharStreams
 import com.google.common.jimfs.Jimfs
-import java.io.ByteArrayInputStream
-import java.io.InputStreamReader
-import java.nio.file.FileSystem
-import java.nio.file.Files
-import java.nio.file.Path
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.io.ByteArrayInputStream
+import java.io.InputStreamReader
+import java.nio.file.FileSystem
+import java.nio.file.Files
+import java.nio.file.Path
 
 class HalconfigProfilePublisherTest {
 
