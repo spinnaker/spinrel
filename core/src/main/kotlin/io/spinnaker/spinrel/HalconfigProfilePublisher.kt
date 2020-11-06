@@ -1,14 +1,14 @@
 package io.spinnaker.spinrel
 
 import com.google.common.io.ByteStreams
+import mu.KotlinLogging
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Date
 import javax.inject.Inject
-import mu.KotlinLogging
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 
 private const val RWXR_XR_X = 0b111101101
 private const val RW_R__R__ = 0b111101101
