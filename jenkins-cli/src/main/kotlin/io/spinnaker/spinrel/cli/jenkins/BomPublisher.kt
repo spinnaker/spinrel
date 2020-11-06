@@ -9,9 +9,9 @@ import com.github.ajalt.clikt.parameters.types.path
 import dagger.Subcomponent
 import io.spinnaker.spinrel.Bom
 import io.spinnaker.spinrel.VersionPublisher
+import mu.KotlinLogging
 import java.nio.file.Path
 import javax.inject.Inject
-import mu.KotlinLogging
 
 class BomPublisher @Inject constructor(private val versionPublisher: VersionPublisher) {
 
