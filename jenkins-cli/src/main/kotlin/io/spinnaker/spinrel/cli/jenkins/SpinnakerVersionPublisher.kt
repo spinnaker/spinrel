@@ -36,7 +36,7 @@ import javax.inject.Inject
  * * tags the appropriate containers with `spinnaker-1.2.3`
  * * updates the `versions.yml` file in the `halconfig` bucket
  * * tags the service versions on GitHub
- * * updates the `_changelogs` directory of the `spinnaker.github.io` repository
+ * * updates the `_changelogs` directory of the `spinnaker.io` repository
  */
 class SpinnakerVersionPublisher @Inject constructor(
     private val httpClient: OkHttpClient,
@@ -154,11 +154,11 @@ class SpinnakerVersionPublisher @Inject constructor(
 
     private fun publishChangelog(releaseInfo: ReleaseInfo) {
         val version = releaseInfo.version
-        Files.createTempDirectory("spinrel-spinnaker.github.io-clone-").deleteAfterUse { repoDir ->
+        Files.createTempDirectory("spinrel-spinnaker.io-clone-").deleteAfterUse { repoDir ->
             repoDir.toFile().deleteRecursively()
             val changelogsDir = repoDir.resolve("_changelogs")
-            logger.info { "Cloning spinnaker.github.io repository" }
-            gitHubCloner.clone(repoDir, "spinnaker.github.io").use { git ->
+            logger.info { "Cloning spinnaker.io repository" }
+            gitHubCloner.clone(repoDir, "spinnaker.io").use { git ->
                 val newChangelog = changelogsDir.resolve("$version-changelog.md")
                 Files.write(newChangelog, getChangelogFileContents(releaseInfo))
                 deprecateOldVersions(changelogsDir, version)

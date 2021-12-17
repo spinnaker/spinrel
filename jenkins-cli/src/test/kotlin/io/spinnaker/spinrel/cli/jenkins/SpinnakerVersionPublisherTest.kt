@@ -501,7 +501,7 @@ class SpinnakerVersionPublisherTest {
 
     private fun createChangelogsRepo(): GitHubCloner {
         val githubCloner = FakeGitHubCloner()
-        githubCloner.createRepo(changelogRepoOrigin, "spinnaker.github.io")
+        githubCloner.createRepo(changelogRepoOrigin, "spinnaker.io")
         val changelogdir = Files.createDirectory(changelogRepoOrigin.resolve("_changelogs"))
         // We have to add an empty file to make sure the directory exists.
         Files.createFile(changelogdir.resolve("empty.txt"))
